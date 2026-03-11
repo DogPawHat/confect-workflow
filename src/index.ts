@@ -1,10 +1,15 @@
-import { WorkflowManager, type WorkflowId } from "@convex-dev/workflow";
+import {
+  WorkflowManager,
+  type WorkflowId,
+  type WorkflowStatus as ManagerWorkflowStatus,
+} from "@convex-dev/workflow";
 import { Cause, Effect, Exit, Scheduler, Schema } from "effect";
 import type {
   FunctionReference,
   FunctionVisibility,
   GenericDataModel,
   GenericMutationCtx,
+  GenericQueryCtx,
 } from "convex/server";
 
 type AnySchema = Schema.Schema.AnyNoContext;
@@ -63,11 +68,21 @@ export type DefinedWorkflow<ArgsSchema extends AnySchema, ReturnsSchema extends 
   readonly mutation: WorkflowMutation;
   readonly encodeArgs: (args: WorkflowSchemaType<ArgsSchema>) => WorkflowSchemaEncoded<ArgsSchema>;
 };
+export type WorkflowStatus<ReturnsSchema extends AnySchema> =
+  | Extract<ManagerWorkflowStatus, { type: "inProgress" }>
+  | Extract<ManagerWorkflowStatus, { type: "canceled" }>
+  | Extract<ManagerWorkflowStatus, { type: "failed" }>
+  | {
+      readonly type: "completed";
+      readonly result: WorkflowSchemaType<ReturnsSchema>;
+    };
+export type WorkflowRestartOptions = NonNullable<Parameters<WorkflowManager["restart"]>[2]>;
 
 export type WorkflowBindings = ReturnType<typeof bindWorkflow>;
 
 type WorkflowComponent = ConstructorParameters<typeof WorkflowManager>[0];
 type MutationCtx = GenericMutationCtx<GenericDataModel>;
+type QueryCtx = GenericQueryCtx<GenericDataModel>;
 
 function normalizeError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error));
@@ -214,8 +229,60 @@ export function bindWorkflow(component: WorkflowComponent) {
     });
   }
 
+  function status<ArgsSchema extends AnySchema, ReturnsSchema extends AnySchema>(
+    ctx: QueryCtx,
+    workflow: DefinedWorkflow<ArgsSchema, ReturnsSchema>,
+    workflowId: WorkflowId,
+  ): Effect.Effect<WorkflowStatus<ReturnsSchema>, Error> {
+    const decodeResult = Schema.decodeUnknownSync(workflow.returns);
+
+    return Effect.tryPromise({
+      try: () => workflowManager.status(ctx, workflowId),
+      catch: normalizeError,
+    }).pipe(
+      Effect.flatMap((currentStatus): Effect.Effect<WorkflowStatus<ReturnsSchema>, Error> => {
+        if (currentStatus.type !== "completed") {
+          return Effect.succeed(currentStatus as WorkflowStatus<ReturnsSchema>);
+        }
+
+        return Effect.try({
+          try: () => ({
+            type: "completed" as const,
+            result: decodeResult(currentStatus.result),
+          }),
+          catch: normalizeError,
+        }) as Effect.Effect<WorkflowStatus<ReturnsSchema>, Error>;
+      }),
+    );
+  }
+
+  function cancel(ctx: MutationCtx, workflowId: WorkflowId) {
+    return Effect.tryPromise({
+      try: () => workflowManager.cancel(ctx, workflowId),
+      catch: normalizeError,
+    });
+  }
+
+  function restart(ctx: MutationCtx, workflowId: WorkflowId, options?: WorkflowRestartOptions) {
+    return Effect.tryPromise({
+      try: () => workflowManager.restart(ctx, workflowId, options),
+      catch: normalizeError,
+    });
+  }
+
+  function cleanup(ctx: MutationCtx, workflowId: WorkflowId) {
+    return Effect.tryPromise({
+      try: () => workflowManager.cleanup(ctx, workflowId),
+      catch: normalizeError,
+    });
+  }
+
   return {
     define,
     start,
+    status,
+    cancel,
+    restart,
+    cleanup,
   };
 }
