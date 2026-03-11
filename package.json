@@ -5,12 +5,15 @@
   "main": "index.js",
   "scripts": {
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:check": "oxlint --check"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "oxfmt": "^0.38.0"
+    "oxfmt": "^0.38.0",
+    "oxlint": "^1.53.0"
   }
 }
