@@ -1,0 +1,4 @@
+interface:
+  display_name: "JJ SPR"
+  short_description: "Help with jj-spr GitHub PR workflows"
+  default_prompt: "Use $jj-spr to manage GitHub pull requests from this Jujutsu repo with `jj spr`."
