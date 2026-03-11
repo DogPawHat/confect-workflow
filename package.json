@@ -2,23 +2,38 @@
   "name": "confect-workflow",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint": "oxlint",
-    "lint:check": "oxlint --check"
+    "lint:check": "oxlint --check",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@convex-dev/workpool": "^0.4.1",
     "@convex-dev/workflow": "^0.3.6",
     "@types/node": "^25.4.0",
     "convex": "^1.32.0",
+    "convex-helpers": "^0.1.114",
+    "convex-test": "^0.0.41",
     "oxfmt": "^0.38.0",
     "oxlint": "^1.53.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "effect": "^3.19.19"
