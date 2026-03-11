@@ -1,6 +1,6 @@
 ---
-name: prd-to-issues		
-description: Break a PRD into independently-grabbable GitHub issues using vertical slices (tracer bullets). Use when user wants to convert a PRD into implementation issues, create GitHub issues from a spec, or plan work as vertical slices.
+name: write-a-prd
+description: Create comprehensive Product Requirements Documents (PRDs) through structured user interviews, codebase exploration, and detailed planning. Use when user wants to write a PRD, create a product spec, or plan a feature implementation.
 ---
 
 This skill will be invoked when the user wants to create a PRD. You should go through the steps below. You may skip steps if you don't consider them necessary.
