@@ -106,28 +106,21 @@ jj new
 # Create new commit with message
 jj new && jj desc -m "Commit message"
 
-# Edit an existing commit (working copy becomes that commit)
-jj edit <change-id>
+# Resume work on an earlier change by creating a child commit
+jj new <rev>
 
-# Edit the previous commit
-jj prev -e
+# ...make your changes...
 
-# Edit the next commit
-jj next -e
-```
-
-## Refining Commits
-
-### Squashing Changes
-
-Move changes from current commit into its parent:
-
-```bash
-# Squash all changes into parent
+# Fold the child commit back into its parent
 jj squash
+
+# Advanced: fold changes into a specific commit instead of the parent
+jj squash -r <change-id>
 ```
 
 **Note**: `jj squash -i` opens an interactive UI and will hang in agent environments. Avoid it.
+
+## Refining Commits
 
 ### Splitting Commits
 
@@ -175,6 +168,21 @@ jj restore path/to/file.txt
 jj restore --from <change-id> path/to/file.txt
 ```
 
+### Edit commits
+
+***Warning**: When you use `jj edit`, the revision is directly amended with your new changes, making it difficult to tell exactly what changed. Avoid using `jj edit` when the revision has a conflict, as you may accidentally break the plain-text annotations on your state without realizing. Use `jj edit <rev>` only when you intentionally want to amend that revision directly.
+
+```bash
+# Edit an existing commit (working copy becomes that commit)
+jj edit <change-id>
+
+# Edit the previous commit
+jj prev -e
+
+# Edit the next commit
+jj next -e
+```
+
 ## Working with Bookmarks (Branches)
 
 Bookmarks are jj's equivalent to git branches:
@@ -204,30 +212,6 @@ jj git clone <url>
 # Initialize jj in an existing git repo
 jj git init --colocate
 ```
-
-### Switching Between jj and git (Colocated Repos)
-
-In a colocated repository (where both `.jj/` and `.git/` exist), you can use both jj and git commands. However, there are important considerations:
-
-**Switching to git mode** (e.g., for merge workflows):
-```bash
-# First, ensure your jj working copy is clean
-jj st
-
-# Then checkout a branch with git
-git checkout <branch-name>
-```
-
-**Switching back to jj mode**:
-```bash
-# Use jj edit to resume working with jj
-jj edit <change-id>
-```
-
-**Important notes:**
-- Git may complain about uncommitted changes if jj's working copy differs from the git HEAD
-- ALWAYS ensure your work is committed in jj before switching to git
-- After git operations, jj will detect and incorporate the changes on next command
 
 ### Pushing Changes
 
@@ -296,8 +280,8 @@ jj st
 | View log | `jj log` |
 | View diff | `jj diff` |
 | New commit | `jj st` then `jj new` only if `@` has changes, then `jj desc -m "message"` |
-| Edit commit | `jj edit <id>` |
 | Squash to parent | `jj squash` |
+| Edit commit | `jj edit <id>` |
 | Auto-distribute | `jj absorb` |
 | Abandon commit | `jj abandon <id>` |
 | Undo last operation | `jj undo` |
