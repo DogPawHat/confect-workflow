@@ -2,6 +2,9 @@
   "name": "confect-workflow",
   "version": "1.0.0",
   "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,19 +16,19 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "format": "oxfmt",
-    "format:check": "oxfmt --check",
-    "lint": "oxlint",
-    "lint:check": "oxlint --check",
-    "test": "vitest run",
+    "format": "oxfmt package.json src test tsconfig.json tsconfig.build.json vitest.config.ts",
+    "format:check": "oxfmt --check package.json src test tsconfig.json tsconfig.build.json vitest.config.ts",
+    "lint": "oxlint src test vitest.config.ts",
+    "lint:check": "oxlint src test vitest.config.ts",
+    "test": "vitest run --pool=threads",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "effect": "^3.19.19"
+  },
   "devDependencies": {
-    "@convex-dev/workpool": "^0.4.1",
     "@convex-dev/workflow": "^0.3.6",
+    "@convex-dev/workpool": "^0.4.1",
     "@types/node": "^25.4.0",
     "convex": "^1.32.0",
     "convex-helpers": "^0.1.114",
@@ -33,10 +36,8 @@
     "oxfmt": "^0.38.0",
     "oxlint": "^1.53.0",
     "typescript": "^5.9.3",
+    "vite": "^7.1.11",
     "vitest": "^4.0.18"
-  },
-  "dependencies": {
-    "effect": "^3.19.19"
   },
   "peerDependencies": {
     "@convex-dev/workflow": "^0.3.6",
