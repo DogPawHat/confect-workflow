@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-issue_data=$(../get-next-issue.sh)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+issue_data=$("$SCRIPT_DIR/../get-next-issue.sh")
 if [ -z "$issue_data" ]; then
   echo "All issues have PRs!"
   exit 0
