@@ -1,11 +1,15 @@
 /// <reference types="vite/client" />
 
 import workflowTest from "@convex-dev/workflow/test";
+import workpoolTest from "@convex-dev/workpool/test";
 import { convexTest } from "convex-test";
 import { defineSchema, makeFunctionReference } from "convex/server";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test } from "vitest";
 
 const modules = import.meta.glob("./fixtures/**/*.ts");
+const originalDate = globalThis.Date;
+const originalSetTimeout = globalThis.setTimeout;
+const originalSetInterval = globalThis.setInterval;
 
 const startHello = makeFunctionReference<
   "mutation",
@@ -26,6 +30,40 @@ const getHelloStatus = makeFunctionReference<
     error?: string;
   }
 >("hello:getHelloStatus");
+const startWaitingHello = makeFunctionReference<
+  "mutation",
+  {
+    name: string;
+  },
+  string
+>("hello:startWaitingHello");
+const getWaitingHelloStatus = makeFunctionReference<
+  "query",
+  {
+    workflowId: string;
+  },
+  {
+    type: "inProgress" | "completed" | "canceled" | "failed";
+    result?: string;
+    error?: string;
+  }
+>("hello:getWaitingHelloStatus");
+const sendWaitingHelloApproval = makeFunctionReference<
+  "mutation",
+  {
+    workflowId: string;
+    greeting: string;
+  },
+  string
+>("hello:sendWaitingHelloApproval");
+const runWaitingHelloWorkflow = makeFunctionReference<
+  "mutation",
+  {
+    workflowId: string;
+    generationNumber: number;
+  },
+  null
+>("hello:waitingHelloWorkflow");
 
 const cancelHello = makeFunctionReference<
   "mutation",
@@ -66,10 +104,17 @@ const restartFailingHello = makeFunctionReference<
 function initTest() {
   const t = convexTest(defineSchema({}), modules);
   workflowTest.register(t);
+  workpoolTest.register(t, "workflow/workpool");
   return t;
 }
 
 describe("bindWorkflow", () => {
+  afterEach(() => {
+    globalThis.Date = originalDate;
+    globalThis.setTimeout = originalSetTimeout;
+    globalThis.setInterval = originalSetInterval;
+  });
+
   test("starts and completes a hello workflow through the public adapter", async () => {
     const t = initTest();
 
@@ -116,6 +161,48 @@ describe("bindWorkflow", () => {
     expect(afterCancel).toEqual({
       type: "canceled",
     });
+  });
+
+  test("waits for a typed event and resumes through the public adapter", async () => {
+    const t = initTest();
+
+    try {
+      const workflowId = await t.mutation(startWaitingHello, {
+        name: "Ada",
+      });
+      const beforeEvent = await t.query(getWaitingHelloStatus, {
+        workflowId,
+      });
+
+      expect(beforeEvent).toEqual({
+        type: "inProgress",
+        running: expect.any(Array),
+      });
+
+      globalThis.setTimeout = (() => 0) as unknown as typeof globalThis.setTimeout;
+      await t.mutation(sendWaitingHelloApproval, {
+        workflowId,
+        greeting: "Welcome",
+      });
+      globalThis.setTimeout = originalSetTimeout;
+      await t.mutation(runWaitingHelloWorkflow, {
+        workflowId,
+        generationNumber: 0,
+      });
+
+      const afterEvent = await t.query(getWaitingHelloStatus, {
+        workflowId,
+      });
+
+      expect(afterEvent).toEqual({
+        type: "completed",
+        result: "Welcome, Ada!",
+      });
+    } finally {
+      globalThis.Date = originalDate;
+      globalThis.setTimeout = originalSetTimeout;
+      globalThis.setInterval = originalSetInterval;
+    }
   });
 
   test("restarts a failed workflow through the public adapter", async () => {
