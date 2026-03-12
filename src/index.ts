@@ -3,7 +3,7 @@ import {
   type WorkflowId,
   type WorkflowStatus as ManagerWorkflowStatus,
 } from "@convex-dev/workflow";
-import { Effect, Schema } from "effect";
+import { DateTime, Duration, Effect, Schema } from "effect";
 import type {
   FunctionReference,
   FunctionVisibility,
@@ -27,7 +27,30 @@ export type WorkflowEventDefinition<Name extends string, PayloadSchema extends A
   readonly name: Name;
   readonly payload: PayloadSchema;
 };
-const hostProcess = typeof process === "undefined" ? undefined : process;
+export type WorkflowStepSchedulingOptions =
+  | {
+      readonly name?: string | undefined;
+      readonly runAt: DateTime.DateTime;
+      readonly runAfter?: undefined;
+    }
+  | {
+      readonly name?: string | undefined;
+      readonly runAt?: undefined;
+      readonly runAfter: Duration.Duration;
+    }
+  | {
+      readonly name?: string | undefined;
+      readonly runAt?: undefined;
+      readonly runAfter?: undefined;
+    };
+export type WorkflowStepRetryOptions = {
+  readonly maxAttempts: number;
+  readonly initialBackoff: Duration.Duration;
+  readonly backoffFactor?: number | undefined;
+};
+export type WorkflowActionStepOptions = WorkflowStepSchedulingOptions & {
+  readonly retry?: boolean | WorkflowStepRetryOptions | undefined;
+};
 const hostDate = globalThis.Date;
 const hostSetTimeout = globalThis.setTimeout;
 const hostSetInterval = globalThis.setInterval;
@@ -43,6 +66,7 @@ export type WorkflowRuntime = {
     reference: Query,
     definition: WorkflowStepDefinition<ArgsSchema, ReturnsSchema>,
     args: WorkflowSchemaType<ArgsSchema>,
+    options?: WorkflowStepSchedulingOptions,
   ) => Effect.Effect<WorkflowSchemaType<ReturnsSchema>, Error>;
   readonly runMutation: <
     Mutation extends FunctionReference<"mutation", FunctionVisibility>,
@@ -52,6 +76,17 @@ export type WorkflowRuntime = {
     reference: Mutation,
     definition: WorkflowStepDefinition<ArgsSchema, ReturnsSchema>,
     args: WorkflowSchemaType<ArgsSchema>,
+    options?: WorkflowStepSchedulingOptions,
+  ) => Effect.Effect<WorkflowSchemaType<ReturnsSchema>, Error>;
+  readonly runAction: <
+    Action extends FunctionReference<"action", FunctionVisibility>,
+    ArgsSchema extends AnySchema,
+    ReturnsSchema extends AnySchema,
+  >(
+    reference: Action,
+    definition: WorkflowStepDefinition<ArgsSchema, ReturnsSchema>,
+    args: WorkflowSchemaType<ArgsSchema>,
+    options?: WorkflowActionStepOptions,
   ) => Effect.Effect<WorkflowSchemaType<ReturnsSchema>, Error>;
   readonly awaitEvent: <Name extends string, PayloadSchema extends AnySchema>(
     event: WorkflowEventDefinition<Name, PayloadSchema>,
@@ -104,15 +139,10 @@ function runWorkflowEffect<A>(effect: Effect.Effect<A, Error>) {
 
 async function withHostWorkflowGlobals<A>(operation: () => Promise<A>) {
   const global = globalThis as Record<string, unknown>;
-  const hadProcess = Object.prototype.hasOwnProperty.call(global, "process");
-  const previousProcess = global.process;
   const previousDate = global.Date;
   const previousSetTimeout = global.setTimeout;
   const previousSetInterval = global.setInterval;
 
-  if (hostProcess !== undefined) {
-    global.process = hostProcess;
-  }
   global.Date = hostDate;
   global.setTimeout = hostSetTimeout;
   global.setInterval = hostSetInterval;
@@ -120,13 +150,6 @@ async function withHostWorkflowGlobals<A>(operation: () => Promise<A>) {
   try {
     return await operation();
   } finally {
-    if (hadProcess) {
-      global.process = previousProcess;
-    } else if (hostProcess === undefined) {
-      delete global.process;
-    } else {
-      global.process = hostProcess;
-    }
     global.Date = previousDate ?? hostDate;
     global.setTimeout = previousSetTimeout ?? hostSetTimeout;
     global.setInterval = previousSetInterval ?? hostSetInterval;
@@ -160,15 +183,101 @@ function runStep<ArgsSchema extends AnySchema, ReturnsSchema extends AnySchema>(
   );
 }
 
+type TranslatedWorkflowStepSchedulingOptions =
+  | {
+      readonly name?: string | undefined;
+      readonly runAt: number;
+      readonly runAfter?: undefined;
+    }
+  | {
+      readonly name?: string | undefined;
+      readonly runAt?: undefined;
+      readonly runAfter: number;
+    }
+  | {
+      readonly name?: string | undefined;
+      readonly runAt?: undefined;
+      readonly runAfter?: undefined;
+    };
+
+type TranslatedWorkflowActionStepOptions = TranslatedWorkflowStepSchedulingOptions & {
+  readonly retry?:
+    | boolean
+    | {
+        readonly maxAttempts: number;
+        readonly initialBackoffMs: number;
+        readonly base: number;
+      }
+    | undefined;
+};
+
+function translateDateTimeToMillis(runAt: DateTime.DateTime) {
+  return DateTime.toDateUtc(runAt).getTime();
+}
+
+function translateSchedulerOptions(
+  options?: WorkflowStepSchedulingOptions,
+): TranslatedWorkflowStepSchedulingOptions | undefined {
+  if (!options) {
+    return undefined;
+  }
+  if (options.runAt !== undefined) {
+    return {
+      name: options.name,
+      runAt: translateDateTimeToMillis(options.runAt),
+    };
+  }
+  if (options.runAfter !== undefined) {
+    return {
+      name: options.name,
+      runAfter: Duration.toMillis(options.runAfter),
+    };
+  }
+  if (options.name === undefined) {
+    return undefined;
+  }
+  return { name: options.name };
+}
+
+function translateActionOptions(
+  options?: WorkflowActionStepOptions,
+): TranslatedWorkflowActionStepOptions | undefined {
+  if (!options) {
+    return undefined;
+  }
+  const schedulerOptions = translateSchedulerOptions(options);
+  if (options.retry === undefined) {
+    return schedulerOptions;
+  }
+  return {
+    ...schedulerOptions,
+    retry:
+      typeof options.retry === "boolean"
+        ? options.retry
+        : {
+            maxAttempts: options.retry.maxAttempts,
+            initialBackoffMs: Duration.toMillis(options.retry.initialBackoff),
+            base: options.retry.backoffFactor ?? 2,
+          },
+  };
+}
+
 type WorkflowStepExecutor = {
   readonly workflowId: WorkflowId;
   readonly runQuery: (
     reference: FunctionReference<"query", FunctionVisibility>,
     args: Record<string, unknown>,
+    options?: TranslatedWorkflowStepSchedulingOptions,
   ) => Promise<unknown>;
   readonly runMutation: (
     reference: FunctionReference<"mutation", FunctionVisibility>,
     args: Record<string, unknown>,
+    options?: TranslatedWorkflowStepSchedulingOptions,
+  ) => Promise<unknown>;
+  readonly runAction: (
+    reference: FunctionReference<"action", FunctionVisibility>,
+    args: Record<string, unknown>,
+    options?: TranslatedWorkflowActionStepOptions,
   ) => Promise<unknown>;
   readonly awaitEvent: (event: { readonly name: string }) => Promise<unknown>;
 };
@@ -176,15 +285,32 @@ type WorkflowStepExecutor = {
 export function createWorkflowRuntime(workflow: WorkflowStepExecutor): WorkflowRuntime {
   return {
     workflowId: workflow.workflowId,
-    runQuery: (reference, definition, args) =>
+    runQuery: (reference, definition, args, options) =>
       runStep(
-        (encodedStepArgs) => workflow.runQuery(reference, encodedStepArgs as never),
+        (encodedStepArgs) =>
+          workflow.runQuery(
+            reference,
+            encodedStepArgs as never,
+            translateSchedulerOptions(options),
+          ),
         definition,
         args,
       ),
-    runMutation: (reference, definition, args) =>
+    runMutation: (reference, definition, args, options) =>
       runStep(
-        (encodedStepArgs) => workflow.runMutation(reference, encodedStepArgs as never),
+        (encodedStepArgs) =>
+          workflow.runMutation(
+            reference,
+            encodedStepArgs as never,
+            translateSchedulerOptions(options),
+          ),
+        definition,
+        args,
+      ),
+    runAction: (reference, definition, args, options) =>
+      runStep(
+        (encodedStepArgs) =>
+          workflow.runAction(reference, encodedStepArgs as never, translateActionOptions(options)),
         definition,
         args,
       ),
