@@ -88,6 +88,16 @@ export type WorkflowRuntime = {
     args: WorkflowSchemaType<ArgsSchema>,
     options?: WorkflowActionStepOptions,
   ) => Effect.Effect<WorkflowSchemaType<ReturnsSchema>, Error>;
+  readonly runChildWorkflow: <
+    Workflow extends FunctionReference<"mutation", "internal">,
+    ArgsSchema extends AnySchema,
+    ReturnsSchema extends AnySchema,
+  >(
+    reference: Workflow,
+    definition: WorkflowStepDefinition<ArgsSchema, ReturnsSchema>,
+    args: WorkflowSchemaType<ArgsSchema>,
+    options?: WorkflowStepSchedulingOptions,
+  ) => Effect.Effect<WorkflowSchemaType<ReturnsSchema>, Error>;
   readonly awaitEvent: <Name extends string, PayloadSchema extends AnySchema>(
     event: WorkflowEventDefinition<Name, PayloadSchema>,
   ) => Effect.Effect<WorkflowSchemaType<PayloadSchema>, Error>;
@@ -279,6 +289,11 @@ type WorkflowStepExecutor = {
     args: Record<string, unknown>,
     options?: TranslatedWorkflowActionStepOptions,
   ) => Promise<unknown>;
+  readonly runChildWorkflow: (
+    reference: FunctionReference<"mutation", "internal">,
+    args: Record<string, unknown>,
+    options?: TranslatedWorkflowStepSchedulingOptions,
+  ) => Promise<unknown>;
   readonly awaitEvent: (event: { readonly name: string }) => Promise<unknown>;
 };
 
@@ -311,6 +326,17 @@ export function createWorkflowRuntime(workflow: WorkflowStepExecutor): WorkflowR
       runStep(
         (encodedStepArgs) =>
           workflow.runAction(reference, encodedStepArgs as never, translateActionOptions(options)),
+        definition,
+        args,
+      ),
+    runChildWorkflow: (reference, definition, args, options) =>
+      runStep(
+        (encodedStepArgs) =>
+          workflow.runChildWorkflow(
+            reference,
+            encodedStepArgs as never,
+            translateSchedulerOptions(options),
+          ),
         definition,
         args,
       ),
@@ -352,7 +378,17 @@ export function bindWorkflow(component: WorkflowComponent) {
       handler: async (workflow, encodedArgs) => {
         const args = decodeArgs(encodedArgs);
         const result = await runWorkflowEffect(
-          definition.handler(createWorkflowRuntime(workflow), args),
+          definition.handler(
+            createWorkflowRuntime({
+              workflowId: workflow.workflowId,
+              runQuery: workflow.runQuery,
+              runMutation: workflow.runMutation,
+              runAction: workflow.runAction,
+              runChildWorkflow: workflow.runWorkflow,
+              awaitEvent: workflow.awaitEvent,
+            }),
+            args,
+          ),
         );
         return encodeResult(result);
       },
