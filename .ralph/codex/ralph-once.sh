@@ -15,21 +15,20 @@ branch_name="issue-${issue_number}-${slug}"
 echo "Working on issue #${issue_number}: ${issue_title}"
 echo "Branch: ${branch_name}"
 
-if [ -n "$blocking_pr" ]; then
-  echo "Stacking on top of blocking PR: ${blocking_pr}"
-  
-  if ! jj bookmark list | grep -q "^${branch_name}:"; then
-    jj new "${blocking_pr}@origin"
-    jj bookmark create "$branch_name" -r @
-  fi
+if jj bookmark list | grep -q "^${branch_name}:"; then
+  echo "Bookmark exists, continuing work..."
+  jj new "$branch_name"
 else
-  if ! jj bookmark list | grep -q "^${branch_name}:"; then
+  if [ -n "$blocking_pr" ]; then
+    echo "Stacking on top of blocking PR: ${blocking_pr}"
+    jj new "${blocking_pr}@origin"
+  else
     jj new main@origin
-    jj bookmark create "$branch_name" -r @
   fi
+  jj bookmark create "$branch_name" -r @
 fi
 
-jj edit "$branch_name"
+jj desc -m "Issue #${issue_number}: ${issue_title}"
 
 prd=$(gh issue view 1 --json body --jq .body)
 
@@ -45,8 +44,5 @@ Read the issue details with: gh issue view ${issue_number}
 
 Implement this issue. Follow the PRD requirements. Run tests and type checks. Commit your changes. ONLY implement this single issue."
 
-if [ -n "$blocking_pr" ]; then
-  jj spr diff --all
-else
-  jj spr diff -r @-
-fi
+jj new
+jj spr diff

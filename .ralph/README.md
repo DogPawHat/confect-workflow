@@ -38,8 +38,27 @@ Autonomous AI coding loops that work through GitHub issues, creating amend-frien
 3. **Detects blocking issues** and stacks PRs appropriately
 4. **Creates jj workspace** with bookmark: `issue-{number}-{slug}`
 5. **Implements issue** with AI agent
-6. **Creates amend-friendly PR** with `jj spr diff`
-7. **Stacks dependent PRs** on top of blocking PRs
+6. **Creates empty commit** on top with `jj new`
+7. **Creates amend-friendly PR** with `jj spr diff` (targets `@-`)
+8. **Stacks dependent PRs** on top of blocking PRs
+
+## Updating PRs
+
+To update a PR after review feedback:
+
+```bash
+# Navigate to the bookmark
+jj new issue-{number}-{slug}
+
+# Make your changes in @
+# ...
+
+# Squash changes into the PR commit
+jj squash
+
+# Update the PR
+jj spr diff
+```
 
 ## Features
 
