@@ -1,7 +1,7 @@
 import { Effect, Schema } from "effect";
 import { makeFunctionReference } from "convex/server";
 import { describe, expect, test, vi } from "vitest";
-import { createWorkflowRuntime } from "../src/index.js";
+import { createWorkflowRuntime, defineEvent } from "../src/index.js";
 
 describe("workflow step service", () => {
   test("validates query and mutation steps at the adapter boundary", async () => {
@@ -18,6 +18,7 @@ describe("workflow step service", () => {
       workflowId: "workflow-123" as never,
       runQuery,
       runMutation,
+      awaitEvent: vi.fn(),
     });
     const buildGreeting = makeFunctionReference<
       "query",
@@ -98,6 +99,33 @@ describe("workflow step service", () => {
       workflowId: "workflow-123",
       greeting: "Hello, Ada!",
       shoutCount: "2",
+    });
+  });
+
+  test("validates awaited events at the adapter boundary", async () => {
+    const awaitEvent = vi.fn(async () => ({
+      total: "42",
+    }));
+    const workflow = createWorkflowRuntime({
+      workflowId: "workflow-123" as never,
+      runQuery: vi.fn(),
+      runMutation: vi.fn(),
+      awaitEvent,
+    });
+    const orderApproved = defineEvent({
+      name: "order/approved",
+      payload: Schema.Struct({
+        total: Schema.NumberFromString,
+      }),
+    });
+
+    const result = await Effect.runPromise(workflow.awaitEvent(orderApproved));
+
+    expect(result).toEqual({
+      total: 42,
+    });
+    expect(awaitEvent).toHaveBeenCalledWith({
+      name: "order/approved",
     });
   });
 });
