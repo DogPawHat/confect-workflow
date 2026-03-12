@@ -35,7 +35,7 @@ for ((i=1; i<=$1; i++)); do
     jj bookmark create "$branch_name" -r @
   fi
   
-  jj desc -m "Issue #${issue_number}: ${issue_title}"
+  jj desc -m "Issue #${issue_number}: ${issue_title}" -m "Fixes #${issue_number}"
   
   prd=$(gh issue view 1 --json body --jq .body)
   
@@ -50,7 +50,7 @@ Issue #${issue_number}: ${issue_title}
 
 Read the issue details with: gh issue view ${issue_number}
 
-Implement this issue. Follow the PRD requirements. Run tests and type checks. Commit your changes. ONLY implement this single issue. If all issues are complete, output <promise>COMPLETE</promise>.")
+Implement this issue. Follow the PRD requirements. Run tests and type checks. Commit your changes. Ensure the PR body includes 'Fixes #${issue_number}'. ONLY implement this single issue. If all issues are complete, output <promise>COMPLETE</promise>.")
   
   echo "$result"
   
