@@ -19,7 +19,6 @@ const components = componentsGeneric() as unknown as {
 };
 
 const adapter = bindWorkflow(components.workflow);
-const workflowManager = new WorkflowManager(components.workflow);
 
 const helloWorkflowDefinition = adapter.define({
   args: Schema.Struct({
@@ -57,6 +56,46 @@ export const getHelloStatus = internalQueryGeneric({
     workflowId: v.string(),
   },
   handler: async (ctx, args) => {
-    return await workflowManager.status(ctx, args.workflowId as WorkflowId);
+    return await Effect.runPromise(
+      adapter.status(ctx, helloWorkflowDefinition, args.workflowId as WorkflowId),
+    );
+  },
+});
+
+export const getFailingHelloStatus = internalQueryGeneric({
+  args: {
+    workflowId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await Effect.runPromise(
+      adapter.status(ctx, helloWorkflowDefinition, args.workflowId as WorkflowId),
+    );
+  },
+});
+
+export const cancelHello = internalMutationGeneric({
+  args: {
+    workflowId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await Effect.runPromise(adapter.cancel(ctx, args.workflowId as WorkflowId));
+  },
+});
+
+export const restartFailingHello = internalMutationGeneric({
+  args: {
+    workflowId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await Effect.runPromise(adapter.restart(ctx, args.workflowId as WorkflowId));
+  },
+});
+
+export const cleanupHello = internalMutationGeneric({
+  args: {
+    workflowId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await Effect.runPromise(adapter.cleanup(ctx, args.workflowId as WorkflowId));
   },
 });
