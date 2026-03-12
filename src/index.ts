@@ -3,7 +3,7 @@ import {
   type WorkflowId,
   type WorkflowStatus as ManagerWorkflowStatus,
 } from "@convex-dev/workflow";
-import { Cause, Effect, Exit, Scheduler, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import type {
   FunctionReference,
   FunctionVisibility,
@@ -23,10 +23,15 @@ export type WorkflowStepDefinition<
   readonly args: ArgsSchema;
   readonly returns: ReturnsSchema;
 };
+export type WorkflowEventDefinition<Name extends string, PayloadSchema extends AnySchema> = {
+  readonly name: Name;
+  readonly payload: PayloadSchema;
+};
 const hostProcess = typeof process === "undefined" ? undefined : process;
 const hostDate = globalThis.Date;
 const hostSetTimeout = globalThis.setTimeout;
 const hostSetInterval = globalThis.setInterval;
+export type WorkflowEventId = Awaited<ReturnType<WorkflowManager["sendEvent"]>>;
 
 export type WorkflowRuntime = {
   readonly workflowId: WorkflowId;
@@ -48,6 +53,9 @@ export type WorkflowRuntime = {
     definition: WorkflowStepDefinition<ArgsSchema, ReturnsSchema>,
     args: WorkflowSchemaType<ArgsSchema>,
   ) => Effect.Effect<WorkflowSchemaType<ReturnsSchema>, Error>;
+  readonly awaitEvent: <Name extends string, PayloadSchema extends AnySchema>(
+    event: WorkflowEventDefinition<Name, PayloadSchema>,
+  ) => Effect.Effect<WorkflowSchemaType<PayloadSchema>, Error>;
 };
 
 export type WorkflowDefinitionInput<
@@ -89,23 +97,14 @@ function normalizeError(error: unknown) {
 }
 
 function runWorkflowEffect<A>(effect: Effect.Effect<A, Error>) {
-  return new Promise<A>((resolve, reject) => {
-    Effect.runCallback(effect, {
-      scheduler: new Scheduler.SyncScheduler(),
-      onExit: (exit) => {
-        if (Exit.isSuccess(exit)) {
-          resolve(exit.value);
-          return;
-        }
-
-        reject(normalizeError(Cause.squash(exit.cause)));
-      },
-    });
+  return Effect.runPromise(effect).catch((error) => {
+    throw normalizeError(error);
   });
 }
 
 async function withHostWorkflowGlobals<A>(operation: () => Promise<A>) {
   const global = globalThis as Record<string, unknown>;
+  const hadProcess = Object.prototype.hasOwnProperty.call(global, "process");
   const previousProcess = global.process;
   const previousDate = global.Date;
   const previousSetTimeout = global.setTimeout;
@@ -121,14 +120,16 @@ async function withHostWorkflowGlobals<A>(operation: () => Promise<A>) {
   try {
     return await operation();
   } finally {
-    if (previousProcess === undefined) {
+    if (hadProcess) {
+      global.process = previousProcess;
+    } else if (hostProcess === undefined) {
       delete global.process;
     } else {
-      global.process = previousProcess;
+      global.process = hostProcess;
     }
-    global.Date = previousDate;
-    global.setTimeout = previousSetTimeout;
-    global.setInterval = previousSetInterval;
+    global.Date = previousDate ?? hostDate;
+    global.setTimeout = previousSetTimeout ?? hostSetTimeout;
+    global.setInterval = previousSetInterval ?? hostSetInterval;
   }
 }
 
@@ -169,6 +170,7 @@ type WorkflowStepExecutor = {
     reference: FunctionReference<"mutation", FunctionVisibility>,
     args: Record<string, unknown>,
   ) => Promise<unknown>;
+  readonly awaitEvent: (event: { readonly name: string }) => Promise<unknown>;
 };
 
 export function createWorkflowRuntime(workflow: WorkflowStepExecutor): WorkflowRuntime {
@@ -186,7 +188,28 @@ export function createWorkflowRuntime(workflow: WorkflowStepExecutor): WorkflowR
         definition,
         args,
       ),
+    awaitEvent: (event) => {
+      const decodePayload = Schema.decodeUnknownSync(event.payload);
+
+      return Effect.tryPromise({
+        try: () => withHostWorkflowGlobals(() => workflow.awaitEvent({ name: event.name })),
+        catch: normalizeError,
+      }).pipe(
+        Effect.flatMap((payload) =>
+          Effect.try({
+            try: () => decodePayload(payload),
+            catch: normalizeError,
+          }),
+        ),
+      );
+    },
   };
+}
+
+export function defineEvent<Name extends string, PayloadSchema extends AnySchema>(
+  definition: WorkflowEventDefinition<Name, PayloadSchema>,
+): WorkflowEventDefinition<Name, PayloadSchema> {
+  return definition;
 }
 
 export function bindWorkflow(component: WorkflowComponent) {
@@ -277,6 +300,52 @@ export function bindWorkflow(component: WorkflowComponent) {
     });
   }
 
+  function sendEvent<Name extends string, PayloadSchema extends AnySchema>(
+    ctx: MutationCtx,
+    args: {
+      readonly workflowId: WorkflowId;
+      readonly event: WorkflowEventDefinition<Name, PayloadSchema>;
+    } & (
+      | {
+          readonly value: WorkflowSchemaType<PayloadSchema>;
+          readonly error?: undefined;
+        }
+      | {
+          readonly value?: undefined;
+          readonly error: string;
+        }
+    ),
+  ) {
+    return (
+      "error" in args
+        ? Effect.tryPromise({
+            try: () =>
+              workflowManager.sendEvent(ctx, {
+                workflowId: args.workflowId,
+                name: args.event.name,
+                error: args.error,
+              }),
+            catch: normalizeError,
+          })
+        : Effect.try({
+            try: () => Schema.encodeSync(args.event.payload)(args.value),
+            catch: normalizeError,
+          }).pipe(
+            Effect.flatMap((value) =>
+              Effect.tryPromise({
+                try: () =>
+                  workflowManager.sendEvent(ctx, {
+                    workflowId: args.workflowId,
+                    name: args.event.name,
+                    value,
+                  }),
+                catch: normalizeError,
+              }),
+            ),
+          )
+    ) as Effect.Effect<WorkflowEventId, Error>;
+  }
+
   return {
     define,
     start,
@@ -284,5 +353,6 @@ export function bindWorkflow(component: WorkflowComponent) {
     cancel,
     restart,
     cleanup,
+    sendEvent,
   };
 }
