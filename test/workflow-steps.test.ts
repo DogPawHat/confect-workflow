@@ -14,6 +14,7 @@ describe("workflow step service", () => {
       runQuery: vi.fn(),
       runMutation: vi.fn(),
       runAction: vi.fn(),
+      runChildWorkflow: vi.fn(),
       awaitEvent,
     });
     const orderApproved = defineEvent({
@@ -46,6 +47,7 @@ describe("workflow step service", () => {
       runQuery,
       runMutation,
       runAction: vi.fn(),
+      runChildWorkflow: vi.fn(),
       awaitEvent: vi.fn(),
     });
     const buildGreeting = makeFunctionReference<
@@ -148,11 +150,15 @@ describe("workflow step service", () => {
     const runAction = vi.fn(async () => ({
       value: "retried",
     }));
+    const runChildWorkflow = vi.fn(async () => ({
+      value: "nested",
+    }));
     const workflow = createWorkflowRuntime({
       workflowId: "workflow-123" as never,
       runQuery,
       runMutation,
       runAction,
+      runChildWorkflow,
       awaitEvent: vi.fn(),
     });
     const scheduledAt = DateTime.unsafeMake("2026-03-12T10:30:00.000Z");
@@ -191,6 +197,18 @@ describe("workflow step service", () => {
         value: string;
       }
     >("steps:sendGreeting");
+    const greetChildWorkflow = makeFunctionReference<
+      "mutation",
+      {
+        fn: "You should not call this directly, call workflow.start instead";
+        args: {
+          input: string;
+        };
+      },
+      {
+        value: string;
+      }
+    >("steps:greetChildWorkflow") as never;
 
     const queryResult = await Effect.runPromise(
       workflow.runQuery(buildGreeting, stepDefinition, { input: "Ada" }, { runAt: scheduledAt }),
@@ -218,10 +236,19 @@ describe("workflow step service", () => {
         },
       ),
     );
+    const childWorkflowResult = await Effect.runPromise(
+      workflow.runChildWorkflow(
+        greetChildWorkflow,
+        stepDefinition,
+        { input: "Ada" },
+        { name: "child-greeting", runAfter: Duration.seconds(1) },
+      ),
+    );
 
     expect(queryResult).toEqual({ value: "scheduled" });
     expect(mutationResult).toEqual({ value: "mutated" });
     expect(actionResult).toEqual({ value: "retried" });
+    expect(childWorkflowResult).toEqual({ value: "nested" });
     expect(runQuery).toHaveBeenCalledWith(
       buildGreeting,
       { input: "Ada" },
@@ -240,6 +267,69 @@ describe("workflow step service", () => {
         },
       },
     );
+    expect(runChildWorkflow).toHaveBeenCalledWith(
+      greetChildWorkflow,
+      { input: "Ada" },
+      { name: "child-greeting", runAfter: 1000 },
+    );
+  });
+
+  test("composes action and child-workflow steps through Effect handlers", async () => {
+    const workflow = createWorkflowRuntime({
+      workflowId: "workflow-123" as never,
+      runQuery: vi.fn(),
+      runMutation: vi.fn(),
+      runAction: vi.fn(async (_reference, args: Record<string, unknown>) => ({
+        greeting: `Action hello, ${String(args.name)}!`,
+      })),
+      runChildWorkflow: vi.fn(async (_reference, args: Record<string, unknown>) => ({
+        greeting: `Child hello, ${String(args.name)}!`,
+      })),
+      awaitEvent: vi.fn(),
+    });
+    const decorateGreeting = makeFunctionReference<
+      "action",
+      {
+        name: string;
+      },
+      {
+        greeting: string;
+      }
+    >("steps:decorateGreeting");
+    const childGreetingWorkflow = makeFunctionReference<
+      "mutation",
+      {
+        fn: "You should not call this directly, call workflow.start instead";
+        args: {
+          name: string;
+        };
+      },
+      {
+        greeting: string;
+      }
+    >("steps:childGreetingWorkflow") as never;
+    const greetingDefinition = {
+      args: Schema.Struct({
+        name: Schema.String,
+      }),
+      returns: Schema.Struct({
+        greeting: Schema.String,
+      }),
+    };
+
+    const result = await Effect.runPromise(
+      Effect.all([
+        workflow.runAction(decorateGreeting, greetingDefinition, { name: "Ada" }),
+        workflow.runChildWorkflow(childGreetingWorkflow, greetingDefinition, { name: "Ada" }),
+      ]).pipe(
+        Effect.map(
+          ([actionGreeting, childGreeting]) =>
+            `${actionGreeting.greeting} Then ${childGreeting.greeting} [${workflow.workflowId}]`,
+        ),
+      ),
+    );
+
+    expect(result).toBe("Action hello, Ada! Then Child hello, Ada! [workflow-123]");
   });
 
   test("validates awaited events at the adapter boundary", async () => {
@@ -251,6 +341,7 @@ describe("workflow step service", () => {
       runQuery: vi.fn(),
       runMutation: vi.fn(),
       runAction: vi.fn(),
+      runChildWorkflow: vi.fn(),
       awaitEvent,
     });
     const orderApproved = defineEvent({
