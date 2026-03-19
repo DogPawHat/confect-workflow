@@ -5,6 +5,9 @@ export default defineConfig({
     dts: {
       tsgo: true,
     },
+    deps: {
+      onlyBundle: false,
+    },
     exports: true,
   },
   lint: {

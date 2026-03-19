@@ -18,9 +18,9 @@
     "prepublishOnly": "vp run build"
   },
   "devDependencies": {
+    "@convex-dev/workpool": "^0.4.2",
     "@types/node": "^25.5.0",
     "@typescript/native-preview": "7.0.0-dev.20260316.1",
-    "bumpp": "^11.0.1",
     "typescript": "^5.9.3",
     "vite-plus": "^0.1.11"
   },
@@ -28,12 +28,10 @@
     "@confect/core": "^3.0.0",
     "@confect/server": "^3.0.0",
     "@convex-dev/workflow": "^0.3.0",
-    "convex": "^1.0.0"
+    "convex": "^1.0.0",
+    "effect": "^3.0.0"
   },
   "inlinedDependencies": {
-    "@convex-dev/workpool": "0.4.2",
-    "effect": "3.20.0",
-    "fast-check": "3.23.2",
-    "pure-rand": "6.1.0"
+    "@convex-dev/workpool": "0.4.2"
   }
 }

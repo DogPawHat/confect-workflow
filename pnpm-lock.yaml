@@ -50,16 +50,19 @@ importers:
       convex:
         specifier: ^1.0.0
         version: 1.33.1
+      effect:
+        specifier: ^3.0.0
+        version: 3.20.0
     devDependencies:
+      '@convex-dev/workpool':
+        specifier: ^0.4.2
+        version: 0.4.2(convex-helpers@0.1.114(@standard-schema/spec@1.1.0)(convex@1.33.1)(typescript@5.9.3))(convex@1.33.1)
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
       '@typescript/native-preview':
         specifier: 7.0.0-dev.20260316.1
         version: 7.0.0-dev.20260316.1
-      bumpp:
-        specifier: ^11.0.1
-        version: 11.0.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
