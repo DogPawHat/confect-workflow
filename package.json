@@ -5,14 +5,21 @@
   "type": "module",
   "scripts": {
     "ready": "vp fmt && vp lint && vp run test -r && vp run build -r",
-    "dev": "vp run website#dev",
     "prepare": "vp config"
+  },
+  "devDependencies": {
+    "@confect/core": "^3.0.0",
+    "@confect/server": "^3.0.0",
+    "@convex-dev/workflow": "^0.3.0",
+    "@convex-dev/workpool": "^0.4.0",
+    "@types/node": "^25.5.0",
+    "convex": "^1.0.0",
+    "effect": "^3.20.0",
+    "typescript": "^5.9.3",
+    "vite-plus": "latest"
   },
   "engines": {
     "node": ">=22.12.0"
-  },
-  "devDependencies": {
-    "vite-plus": "catalog:"
   },
   "packageManager": "pnpm@9.4.0"
 }

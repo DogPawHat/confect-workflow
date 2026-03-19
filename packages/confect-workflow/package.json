@@ -1,17 +1,7 @@
 {
   "name": "confect-workflow",
   "version": "0.0.0",
-  "description": "A starter for creating a TypeScript package.",
-  "homepage": "https://github.com/author/library#readme",
-  "bugs": {
-    "url": "https://github.com/author/library/issues"
-  },
-  "license": "MIT",
-  "author": "Author Name <author.name@mail.com>",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/author/library.git"
-  },
+  "private": true,
   "files": [
     "dist"
   ],
@@ -19,9 +9,6 @@
   "exports": {
     ".": "./dist/index.mjs",
     "./package.json": "./package.json"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "scripts": {
     "build": "vp pack",
@@ -36,5 +23,17 @@
     "bumpp": "^11.0.1",
     "typescript": "^5.9.3",
     "vite-plus": "^0.1.11"
+  },
+  "peerDependencies": {
+    "@confect/core": "^3.0.0",
+    "@confect/server": "^3.0.0",
+    "@convex-dev/workflow": "^0.3.0",
+    "convex": "^1.0.0"
+  },
+  "inlinedDependencies": {
+    "@convex-dev/workpool": "0.4.2",
+    "effect": "3.20.0",
+    "fast-check": "3.23.2",
+    "pure-rand": "6.1.0"
   }
 }

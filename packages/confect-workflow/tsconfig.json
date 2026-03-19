@@ -1,20 +1,18 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "lib": ["es2023"],
-    "moduleDetection": "force",
-    "module": "preserve",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
+    "composite": true,
+    "lib": ["ESNext", "DOM"],
     "types": ["node"],
-    "strict": true,
-    "noUnusedLocals": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
     "esModuleInterop": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "skipLibCheck": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "~/*": ["./*"]
+    }
   },
-  "include": ["src"]
+  "include": ["src/**/*", "tests/**/*"]
 }
