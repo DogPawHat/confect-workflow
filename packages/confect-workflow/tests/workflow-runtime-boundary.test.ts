@@ -4,7 +4,7 @@ import {
 } from "@convex-dev/workflow";
 import { Effect, Schema } from "effect";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { Workflow } from "../src/Workflow";
+import { defineWorkflow } from "../src/define.js";
 
 describe("Workflow runtime boundary", () => {
   afterEach(() => {
@@ -38,7 +38,7 @@ describe("Workflow runtime boundary", () => {
     const capture = captureDefinition();
     const handler = vi.fn(({ count }: { count: number }) => Effect.succeed(count + 1));
 
-    Workflow.define({} as any, {
+    defineWorkflow({} as any, {
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
       handler,
@@ -54,7 +54,7 @@ describe("Workflow runtime boundary", () => {
   it("Workflow.define encodes returns before returning upstream", async () => {
     const capture = captureDefinition();
 
-    Workflow.define({} as any, {
+    defineWorkflow({} as any, {
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
       handler: ({ count }) => Effect.succeed(count + 1),
@@ -69,7 +69,7 @@ describe("Workflow runtime boundary", () => {
     const capture = captureDefinition();
     const handler = vi.fn(() => Effect.succeed(42));
 
-    Workflow.define({} as any, {
+    defineWorkflow({} as any, {
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
       handler,
@@ -87,7 +87,7 @@ describe("Workflow runtime boundary", () => {
   it("Workflow.define fails invalid handler returns at the wrapper boundary", async () => {
     const capture = captureDefinition();
 
-    Workflow.define({} as any, {
+    defineWorkflow({} as any, {
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
       handler: () => Effect.succeed("wrong-shape" as any),
@@ -107,7 +107,7 @@ describe("Workflow runtime boundary", () => {
       retryActionsByDefault: true,
     };
 
-    Workflow.define({} as any, {
+    defineWorkflow({} as any, {
       args: Schema.Struct({}),
       returns: Schema.Null,
       handler: () => Effect.succeed(null),

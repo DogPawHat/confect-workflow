@@ -10,40 +10,42 @@ import {
 } from "@confect/server";
 import { Effect, Layer, Schema } from "effect";
 import { describe, expect, it } from "vite-plus/test";
-import { Workflow } from "../src/Workflow";
-import { isWorkflowSpec } from "../src/internal/workflow-metadata";
+
+import { defineWorkflow } from "../src/define.js";
+import { workflowSpec } from "../src/spec.js";
+import { isWorkflowSpec } from "../src/internal/workflow-metadata.js";
 
 describe("Workflow", () => {
   it("creates plain convex internal mutation specs and preserves workflow metadata on refs", () => {
-    const workflow = Workflow.define({} as any, {
+    const workflow = defineWorkflow({} as any, {
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
       handler: ({ count }) => Effect.succeed(count + 1),
     });
 
     const workflowGroup = GroupSpec.make("workflows").addFunction(
-      Workflow.spec(workflow, "countWorkflow"),
+      workflowSpec(workflow, "countWorkflow"),
     );
     const spec = Spec.make().add(workflowGroup);
     const refs = Refs.make(spec);
     const workflowRef = refs.internal.workflows.countWorkflow;
-    const workflowSpec = Ref.getFunctionSpec(workflowRef);
+    const workflowFunctionSpec = Ref.getFunctionSpec(workflowRef);
 
-    expect(workflowSpec.runtimeAndFunctionType.functionType).toBe("mutation");
-    expect(workflowSpec.functionVisibility).toBe("internal");
-    expect(workflowSpec.functionProvenance._tag).toBe("Convex");
-    expect(isWorkflowSpec(workflowSpec)).toBe(true);
+    expect(workflowFunctionSpec.runtimeAndFunctionType.functionType).toBe("mutation");
+    expect(workflowFunctionSpec.functionVisibility).toBe("internal");
+    expect(workflowFunctionSpec.functionProvenance._tag).toBe("Convex");
+    expect(isWorkflowSpec(workflowFunctionSpec)).toBe(true);
   });
 
   it("registers workflow definitions through RegisteredConvexFunction without a custom maker", () => {
-    const workflow = Workflow.define({} as any, {
+    const workflow = defineWorkflow({} as any, {
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
       handler: ({ count }) => Effect.succeed(count + 1),
     });
 
     const workflowGroup = GroupSpec.make("workflows").addFunction(
-      Workflow.spec(workflow, "countWorkflow"),
+      workflowSpec(workflow, "countWorkflow"),
     );
     const notesGroup = GroupSpec.make("notes").addFunction(
       FunctionSpec.publicMutation({
@@ -57,17 +59,9 @@ describe("Workflow", () => {
     const schema = DatabaseSchema.make();
     const api = Api.make(schema, spec);
 
-    const workflowImpl = FunctionImpl.make(
-      api,
-      "workflows",
-      "countWorkflow",
-      workflow,
-    );
-    const noteImpl = FunctionImpl.make(
-      api,
-      "notes",
-      "insert",
-      ({ text }: { text: string }) => Effect.succeed(text).pipe(Effect.orDie),
+    const workflowImpl = FunctionImpl.make(api, "workflows", "countWorkflow", workflow);
+    const noteImpl = FunctionImpl.make(api, "notes", "insert", ({ text }: { text: string }) =>
+      Effect.succeed(text).pipe(Effect.orDie),
     );
 
     const impl = Impl.make(api).pipe(
@@ -80,10 +74,7 @@ describe("Workflow", () => {
       Impl.finalize,
     );
 
-    const registeredFunctions = RegisteredFunctions.make(
-      impl,
-      RegisteredConvexFunction.make,
-    );
+    const registeredFunctions = RegisteredFunctions.make(impl, RegisteredConvexFunction.make);
 
     expect((registeredFunctions as any).workflows.countWorkflow).toBe(workflow);
     expect((registeredFunctions as any).notes.insert).toBeDefined();

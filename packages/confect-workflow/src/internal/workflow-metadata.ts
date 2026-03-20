@@ -1,30 +1,10 @@
 import { Ref } from "@confect/core";
 import type * as FunctionSpec from "@confect/core/FunctionSpec";
-import type { RegisteredMutation } from "convex/server";
 import { Predicate, Schema } from "effect";
 
+import type { WorkflowMetadata, WorkflowMetadataCarrier } from "../types.js";
+
 const WorkflowMetadataKey = "@confect-workflow/WorkflowMetadata";
-
-export interface WorkflowMetadata<
-  Args extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
-  Returns extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
-> {
-  readonly args: Args;
-  readonly returns: Returns;
-}
-
-export interface WorkflowMetadataCarrier<
-  Args extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
-  Returns extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
-> {
-  readonly [WorkflowMetadataKey]: WorkflowMetadata<Args, Returns>;
-}
-
-export type WorkflowMutation<
-  Args extends Schema.Schema.AnyNoContext,
-  Returns extends Schema.Schema.AnyNoContext,
-> = RegisteredMutation<"internal", Args["Type"], Returns["Type"]> &
-  WorkflowMetadataCarrier<Args, Returns>;
 
 export const attachWorkflowMetadata = <
   Value extends object,
@@ -44,9 +24,7 @@ export const attachWorkflowMetadata = <
   return value as Value & WorkflowMetadataCarrier<Args, Returns>;
 };
 
-export const hasWorkflowMetadata = (
-  value: unknown,
-): value is WorkflowMetadataCarrier =>
+export const hasWorkflowMetadata = (value: unknown): value is WorkflowMetadataCarrier =>
   Predicate.hasProperty(value, WorkflowMetadataKey);
 
 export const getWorkflowMetadataOrThrow = (
@@ -68,6 +46,5 @@ export const getWorkflowMetadataFromRef = (ref: Ref.Any): WorkflowMetadata =>
     `workflow ref '${Ref.getConvexFunctionName(ref)}'`,
   );
 
-export const isWorkflowSpec = (
-  functionSpec: FunctionSpec.AnyWithProps,
-): boolean => hasWorkflowMetadata(functionSpec);
+export const isWorkflowSpec = (functionSpec: FunctionSpec.AnyWithProps): boolean =>
+  hasWorkflowMetadata(functionSpec);
