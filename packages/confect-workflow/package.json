@@ -1,7 +1,6 @@
 {
   "name": "@dogpawhat/confect-workflow",
   "version": "0.0.0-alpha.1",
-  "private": false,
   "license": "MIT",
   "files": [
     "dist"
