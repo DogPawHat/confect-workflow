@@ -27,10 +27,7 @@ const startGenerateTaggedNote = FunctionImpl.make(
   ({ text }) =>
     Effect.gen(function* () {
       const workflowManager = yield* WorkflowManagerRequiresMutation;
-      return yield* workflowManager.start(
-        refs.internal.workflows.generateTaggedNote,
-        { text },
-      );
+      return yield* workflowManager.start(refs.internal.workflows.generateTaggedNote, { text });
     }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
 );
 
@@ -41,9 +38,7 @@ const getWorkflowStatus = FunctionImpl.make(
   ({ workflowId }) =>
     Effect.gen(function* () {
       const workflowManager = yield* WorkflowManagerRequiresQuery;
-      return yield* workflowManager.status(
-        workflowId as unknown as WorkflowId,
-      );
+      return yield* workflowManager.status(workflowId as unknown as WorkflowId);
     }).pipe(Effect.provide(workflowManagerLayers.queryLayer), Effect.orDie),
 );
 
@@ -63,15 +58,11 @@ const sendApprovalEvent = FunctionImpl.make(
     }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
 );
 
-const cleanupWorkflow = FunctionImpl.make(
-  api,
-  "workflows",
-  "cleanupWorkflow",
-  ({ workflowId }) =>
-    Effect.gen(function* () {
-      const workflowManager = yield* WorkflowManagerRequiresMutation;
-      return yield* workflowManager.cleanup(workflowId as unknown as WorkflowId);
-    }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
+const cleanupWorkflow = FunctionImpl.make(api, "workflows", "cleanupWorkflow", ({ workflowId }) =>
+  Effect.gen(function* () {
+    const workflowManager = yield* WorkflowManagerRequiresMutation;
+    return yield* workflowManager.cleanup(workflowId as unknown as WorkflowId);
+  }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
 );
 
 export const workflows = GroupImpl.make(api, "workflows").pipe(

@@ -10,27 +10,26 @@
     "format": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
     "fix": "prettier --write . && eslint --fix . --max-warnings=0",
-    "clean": "rm -rf dist node_modules",
-    "test": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project convex/tsconfig.json && vitest run"
+    "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
-    "@confect/cli": "^3.0.0",
-    "@confect/core": "^3.0.0",
-    "@confect/react": "^3.0.0",
-    "@confect/server": "^3.0.0",
-    "@convex-dev/workflow": "^0.3.6",
-    "@convex-dev/workpool": "^0.4.2",
+    "@confect/cli": "catalog:",
+    "@confect/core": "catalog:",
+    "@confect/react": "catalog:",
+    "@confect/server": "catalog:",
+    "@convex-dev/workflow": "catalog:",
+    "@convex-dev/workpool": "catalog:",
     "@dogpawhat/confect-workflow": "workspace:*",
-    "@effect/platform": "0.94.5",
-    "convex": "^1.34.0",
-    "effect": "3.21.0",
+    "@effect/platform": "catalog:",
+    "convex": "catalog:",
+    "effect": "catalog:",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "vite": "^8.0.1"
   },
   "devDependencies": {
-    "@confect/test": "^3.0.0",
-    "@effect/vitest": "^0.29.0",
+    "@confect/test": "catalog:",
+    "@effect/vitest": "catalog:",
     "@eslint/js": "10.0.1",
     "@types/node": "25.5.0",
     "@types/react": "19.2.14",
@@ -41,7 +40,6 @@
     "npmx-connector": "^0.4.0",
     "prettier": "3.8.1",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.57.1",
-    "vitest": "^3.2.0"
+    "typescript-eslint": "8.57.1"
   }
 }

@@ -77,17 +77,9 @@ const Page = () => {
 
       <br />
 
-      <textarea
-        rows={4}
-        cols={50}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
+      <textarea rows={4} cols={50} value={note} onChange={(e) => setNote(e.target.value)} />
       <br />
-      <button
-        type="button"
-        onClick={() => void insertNote({ text: note }).then(() => setNote(""))}
-      >
+      <button type="button" onClick={() => void insertNote({ text: note }).then(() => setNote(""))}>
         Insert note
       </button>
 
@@ -112,10 +104,7 @@ const NoteList = () => {
       {Array.map(notes, (note) => (
         <li key={note._id}>
           <p>{note.text}</p>
-          <button
-            type="button"
-            onClick={() => void deleteNote({ noteId: note._id })}
-          >
+          <button type="button" onClick={() => void deleteNote({ noteId: note._id })}>
             Delete note
           </button>
         </li>
@@ -135,9 +124,7 @@ const WorkflowStatus = ({ workflowId }: { workflowId: string }) => {
 const WorkflowPanel = () => {
   const [workflowText, setWorkflowText] = useState("Hello from workflow");
   const [workflowId, setWorkflowId] = useState<string | null>(null);
-  const startWorkflow = useMutation(
-    refs.public.workflows.startGenerateTaggedNote,
-  );
+  const startWorkflow = useMutation(refs.public.workflows.startGenerateTaggedNote);
   const sendApproval = useMutation(refs.public.workflows.sendApprovalEvent);
   const cleanup = useMutation(refs.public.workflows.cleanupWorkflow);
 
@@ -188,10 +175,7 @@ const WorkflowPanel = () => {
 };
 
 const ApiClient = HttpApiClient.make(Api, {
-  baseUrl: import.meta.env.VITE_CONVEX_URL.replace(
-    "convex.cloud",
-    "convex.site",
-  ),
+  baseUrl: import.meta.env.VITE_CONVEX_URL.replace("convex.cloud", "convex.site"),
 });
 
 const getFirst = ApiClient.pipe(
@@ -201,19 +185,13 @@ const getFirst = ApiClient.pipe(
 );
 
 const HttpEndpoints = () => {
-  const [getResponse, setGetResponse] = useState<Exit.Exit<any, any> | null>(
-    null,
-  );
+  const [getResponse, setGetResponse] = useState<Exit.Exit<any, any> | null>(null);
 
   return (
     <div>
       <button
         type="button"
-        onClick={() =>
-          getFirst
-            .pipe(Effect.runPromiseExit)
-            .then((exit) => setGetResponse(exit))
-        }
+        onClick={() => getFirst.pipe(Effect.runPromiseExit).then((exit) => setGetResponse(exit))}
       >
         HTTP GET /path-prefix/get-first
       </button>

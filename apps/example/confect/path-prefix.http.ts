@@ -1,10 +1,4 @@
-import {
-  HttpApi,
-  HttpApiBuilder,
-  HttpApiEndpoint,
-  HttpApiGroup,
-  OpenApi,
-} from "@effect/platform";
+import { HttpApi, HttpApiBuilder, HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { Effect, Layer, Schema } from "effect";
 import refs from "./_generated/refs";
 import { QueryRunner } from "./_generated/services";
@@ -39,16 +33,11 @@ const ApiGroupLive = HttpApiBuilder.group(Api, "notes", (handlers) =>
     Effect.gen(function* () {
       const runQuery = yield* QueryRunner;
 
-      const firstNote = yield* runQuery(
-        refs.public.notesAndRandom.notes.getFirst,
-        {},
-      );
+      const firstNote = yield* runQuery(refs.public.notesAndRandom.notes.getFirst, {});
 
       return firstNote;
     }).pipe(Effect.orDie),
   ),
 );
 
-export const ApiLive = HttpApiBuilder.api(Api).pipe(
-  Layer.provide(ApiGroupLive),
-);
+export const ApiLive = HttpApiBuilder.api(Api).pipe(Layer.provide(ApiGroupLive));
