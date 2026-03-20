@@ -1,4 +1,3 @@
-import { FunctionSpec } from "@confect/core";
 import { SchemaToValidator } from "@confect/server";
 import {
   WorkflowManager as UpstreamWorkflowManager,
@@ -8,14 +7,15 @@ import type { WorkpoolOptions } from "@convex-dev/workpool";
 import { Effect, Schema } from "effect";
 import {
   attachWorkflowMetadata,
-  getWorkflowMetadataOrThrow,
   type WorkflowMutation,
-} from "./internal/workflowMetadata";
-import { WorkflowContext } from "./services/WorkflowContext";
+} from "./internal/workflow-metadata";
+import { WorkflowContext } from "./services/workflow-context";
 
-type WorkflowComponent = ConstructorParameters<typeof UpstreamWorkflowManager>[0];
+type WorkflowComponent = ConstructorParameters<
+  typeof UpstreamWorkflowManager
+>[0];
 
-export function define<
+export function defineWorkflow<
   Args extends Schema.Schema.AnyNoContext,
   Returns extends Schema.Schema.AnyNoContext,
   E = never,
@@ -29,7 +29,9 @@ export function define<
   }: {
     args: Args;
     returns: Returns;
-    handler: (args: Args["Type"]) => Effect.Effect<Returns["Type"], E, WorkflowContext>;
+    handler: (
+      args: Args["Type"],
+    ) => Effect.Effect<Returns["Type"], E, WorkflowContext>;
     workpoolOptions?: WorkpoolOptions;
   },
 ): WorkflowMutation<Args, Returns> {
@@ -46,9 +48,13 @@ export function define<
         Schema.decode(args)(encodedArgs).pipe(
           Effect.orDie,
           Effect.andThen((decodedArgs) =>
-            handler(decodedArgs).pipe(Effect.provide(WorkflowContext.make(step))),
+            handler(decodedArgs).pipe(
+              Effect.provide(WorkflowContext.make(step)),
+            ),
           ),
-          Effect.andThen((workflowReturns) => Schema.encode(returns)(workflowReturns)),
+          Effect.andThen((workflowReturns) =>
+            Schema.encode(returns)(workflowReturns),
+          ),
           Effect.orDie,
         ),
       ),
@@ -59,18 +65,3 @@ export function define<
     returns,
   }) as WorkflowMutation<Args, Returns>;
 }
-
-export function spec<Workflow extends WorkflowMutation<any, any>, const Name extends string>(
-  workflow: Workflow,
-  name: Name,
-) {
-  return attachWorkflowMetadata(
-    FunctionSpec.convexInternalMutation<typeof workflow>()(name),
-    getWorkflowMetadataOrThrow(workflow, `workflow definition '${name}'`),
-  );
-}
-
-export const Workflow = {
-  define,
-  spec,
-} as const;

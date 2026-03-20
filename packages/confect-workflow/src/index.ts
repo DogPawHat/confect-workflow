@@ -1,7 +1,12 @@
-export { Workflow, define as defineWorkflow, spec as workflowSpec } from "./Workflow";
-export { WorkflowContext, type WorkflowContextShape } from "./services/WorkflowContext";
+export { defineWorkflow } from "./define.js";
+export { workflowSpec } from "./spec.js";
+
+export {
+  WorkflowContext,
+  type WorkflowContextShape,
+} from "./services/workflow-context.js";
 export {
   WorkflowManagerRequiresMutation,
   WorkflowManagerRequiresQuery,
   makeWorkflowManagerLayers,
-} from "./services/WorkflowManager";
+} from "./services/workflow-manager.js";

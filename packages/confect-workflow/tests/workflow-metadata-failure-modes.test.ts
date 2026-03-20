@@ -2,7 +2,7 @@ import { GroupSpec, Ref, Refs, Spec } from "@confect/core";
 import { Effect, Schema } from "effect";
 import { describe, expect, it } from "vite-plus/test";
 import { Workflow } from "../src/Workflow";
-import { isWorkflowSpec } from "../src/internal/workflowMetadata";
+import { isWorkflowSpec } from "../src/internal/workflow-metadata";
 
 describe("Workflow metadata failure modes", () => {
   it("Workflow.spec rejects non-workflow values", () => {
@@ -19,10 +19,16 @@ describe("Workflow metadata failure modes", () => {
     });
 
     const spec = Spec.make().add(
-      GroupSpec.make("workflows").addFunction(Workflow.spec(workflow, "countWorkflow")),
+      GroupSpec.make("workflows").addFunction(
+        Workflow.spec(workflow, "countWorkflow"),
+      ),
     );
     const refs = Refs.make(spec);
 
-    expect(isWorkflowSpec(Ref.getFunctionSpec(refs.internal.workflows.countWorkflow))).toBe(true);
+    expect(
+      isWorkflowSpec(
+        Ref.getFunctionSpec(refs.internal.workflows.countWorkflow),
+      ),
+    ).toBe(true);
   });
 });
