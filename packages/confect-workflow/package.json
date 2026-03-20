@@ -29,8 +29,8 @@
     "@confect/core": "^3.0.0",
     "@confect/server": "^3.0.0",
     "@convex-dev/workflow": "^0.3.0",
-    "convex": "^1.0.0",
-    "effect": "^3.0.0"
+    "convex": "^1.34.0",
+    "effect": "^3.21.0"
   },
   "inlinedDependencies": {
     "@convex-dev/workpool": "0.4.2"
