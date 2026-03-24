@@ -20,16 +20,10 @@ describe("Workflow metadata failure modes", () => {
     });
 
     const spec = Spec.make().add(
-      GroupSpec.make("workflows").addFunction(
-        workflowSpec(workflow, "countWorkflow"),
-      ),
+      GroupSpec.make("workflows").addFunction(workflowSpec(workflow, "countWorkflow")),
     );
     const refs = Refs.make(spec);
 
-    expect(
-      isWorkflowSpec(
-        Ref.getFunctionSpec(refs.internal.workflows.countWorkflow),
-      ),
-    ).toBe(true);
+    expect(isWorkflowSpec(Ref.getFunctionSpec(refs.internal.workflows.countWorkflow))).toBe(true);
   });
 });

@@ -8,7 +8,7 @@ import {
   makeWorkflowManagerLayers,
   WorkflowManagerRequiresMutation,
   WorkflowManagerRequiresQuery,
-} from "@dogpawhat/confect-workflow/server";
+} from "confect-workflow/server";
 import { generateTaggedNote } from "./workflows";
 
 const workflowManagerLayers = makeWorkflowManagerLayers(components.workflow);
