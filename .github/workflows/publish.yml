@@ -33,4 +33,4 @@ jobs:
 
       - name: Publish package
         working-directory: packages/confect-workflow
-        run: vp pm publish --filter packages/confect-workflow --no-git-checks
+        run: vp pm publish --no-git-checks
