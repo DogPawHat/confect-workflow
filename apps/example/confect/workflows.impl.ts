@@ -8,7 +8,7 @@ import {
   makeWorkflowManagerLayers,
   WorkflowManagerRequiresMutation,
   WorkflowManagerRequiresQuery,
-} from "@dogpawhat/confect-workflow";
+} from "@dogpawhat/confect-workflow/server";
 import { generateTaggedNote } from "./workflows";
 
 const workflowManagerLayers = makeWorkflowManagerLayers(components.workflow);
@@ -27,7 +27,10 @@ const startGenerateTaggedNote = FunctionImpl.make(
   ({ text }) =>
     Effect.gen(function* () {
       const workflowManager = yield* WorkflowManagerRequiresMutation;
-      return yield* workflowManager.start(refs.internal.workflows.generateTaggedNote, { text });
+      return yield* workflowManager.start(
+        refs.internal.workflows.generateTaggedNote,
+        { text },
+      );
     }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
 );
 
@@ -58,11 +61,17 @@ const sendApprovalEvent = FunctionImpl.make(
     }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
 );
 
-const cleanupWorkflow = FunctionImpl.make(api, "workflows", "cleanupWorkflow", ({ workflowId }) =>
-  Effect.gen(function* () {
-    const workflowManager = yield* WorkflowManagerRequiresMutation;
-    return yield* workflowManager.cleanup(workflowId as unknown as WorkflowId);
-  }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
+const cleanupWorkflow = FunctionImpl.make(
+  api,
+  "workflows",
+  "cleanupWorkflow",
+  ({ workflowId }) =>
+    Effect.gen(function* () {
+      const workflowManager = yield* WorkflowManagerRequiresMutation;
+      return yield* workflowManager.cleanup(
+        workflowId as unknown as WorkflowId,
+      );
+    }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
 );
 
 export const workflows = GroupImpl.make(api, "workflows").pipe(

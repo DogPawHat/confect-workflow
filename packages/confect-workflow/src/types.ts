@@ -1,5 +1,5 @@
 import type { RegisteredMutation } from "convex/server";
-import { Schema } from "effect";
+import type { Schema } from "effect";
 
 export interface WorkflowMetadata<
   Args extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
@@ -13,7 +13,10 @@ export interface WorkflowMetadataCarrier<
   Args extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
   Returns extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
 > {
-  readonly ["@confect-workflow/WorkflowMetadata"]: WorkflowMetadata<Args, Returns>;
+  readonly ["@confect-workflow/WorkflowMetadata"]: WorkflowMetadata<
+    Args,
+    Returns
+  >;
 }
 
 export type WorkflowMutation<

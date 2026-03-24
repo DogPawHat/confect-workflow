@@ -2,7 +2,7 @@ import { Effect, Schema } from "effect";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { defineWorkflow } from "../src/define.js";
 import { workflowSpec } from "../src/spec.js";
-import { makeWorkflowManagerMutationService } from "../src/services/workflow-manager.js";
+import { makeWorkflowManagerMutationService } from "../src/server/services/workflow-manager.ts";
 
 describe("WorkflowManagerRequiresMutation", () => {
   it("encodes workflow args before delegating start to upstream", async () => {
@@ -13,8 +13,12 @@ describe("WorkflowManagerRequiresMutation", () => {
     });
 
     const workflowRef = {
-      "@confect/core/api/HiddenFunctionSpecKey": workflowSpec(workflow, "countWorkflow"),
-      "@confect/core/api/HiddenConvexFunctionNameKey": "workflows:countWorkflow",
+      "@confect/core/api/HiddenFunctionSpecKey": workflowSpec(
+        workflow,
+        "countWorkflow",
+      ),
+      "@confect/core/api/HiddenConvexFunctionNameKey":
+        "workflows:countWorkflow",
     } as any;
 
     const upstream = {
@@ -32,7 +36,9 @@ describe("WorkflowManagerRequiresMutation", () => {
       storage: {},
     });
 
-    const result = await Effect.runPromise(service.start(workflowRef, { count: 41 }));
+    const result = await Effect.runPromise(
+      service.start(workflowRef, { count: 41 }),
+    );
 
     expect(result).toBe("workflow-id");
     expect(upstream.start).toHaveBeenCalledOnce();

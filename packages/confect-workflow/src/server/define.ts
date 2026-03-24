@@ -5,11 +5,14 @@ import {
 } from "@convex-dev/workflow";
 import type { WorkpoolOptions } from "@convex-dev/workpool";
 import { Effect, Schema } from "effect";
-import { attachWorkflowMetadata } from "./internal/workflow-metadata";
-import type { WorkflowMutation } from "./types.js";
-import { WorkflowContext } from "./services/workflow-context";
 
-type WorkflowComponent = ConstructorParameters<typeof UpstreamWorkflowManager>[0];
+import { attachWorkflowMetadata } from "../internal/workflow-metadata.js";
+import type { WorkflowMutation } from "../types.js";
+import { WorkflowContext } from "./services/workflow-context.js";
+
+type WorkflowComponent = ConstructorParameters<
+  typeof UpstreamWorkflowManager
+>[0];
 
 export function defineWorkflow<
   Args extends Schema.Schema.AnyNoContext,
@@ -25,7 +28,9 @@ export function defineWorkflow<
   }: {
     args: Args;
     returns: Returns;
-    handler: (args: Args["Type"]) => Effect.Effect<Returns["Type"], E, WorkflowContext>;
+    handler: (
+      args: Args["Type"],
+    ) => Effect.Effect<Returns["Type"], E, WorkflowContext>;
     workpoolOptions?: WorkpoolOptions;
   },
 ): WorkflowMutation<Args, Returns> {
@@ -42,9 +47,13 @@ export function defineWorkflow<
         Schema.decode(args)(encodedArgs).pipe(
           Effect.orDie,
           Effect.andThen((decodedArgs) =>
-            handler(decodedArgs).pipe(Effect.provide(WorkflowContext.make(step))),
+            handler(decodedArgs).pipe(
+              Effect.provide(WorkflowContext.make(step)),
+            ),
           ),
-          Effect.andThen((workflowReturns) => Schema.encode(returns)(workflowReturns)),
+          Effect.andThen((workflowReturns) =>
+            Schema.encode(returns)(workflowReturns),
+          ),
           Effect.orDie,
         ),
       ),

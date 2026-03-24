@@ -1,6 +1,9 @@
 import { Effect, Schema } from "effect";
 import { api, components } from "../convex/_generated/api";
-import { defineWorkflow, WorkflowContext } from "@dogpawhat/confect-workflow";
+import {
+  defineWorkflow,
+  WorkflowContext,
+} from "@dogpawhat/confect-workflow/server";
 
 export const generateTaggedNote = defineWorkflow(components.workflow, {
   args: Schema.Struct({ text: Schema.String }),

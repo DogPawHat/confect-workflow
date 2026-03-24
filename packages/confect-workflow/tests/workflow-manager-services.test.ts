@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import {
   makeWorkflowManagerMutationService,
   makeWorkflowManagerQueryService,
-} from "../src/services/workflow-manager.js";
+} from "../src/server/services/workflow-manager.ts";
 
 describe("WorkflowManager services", () => {
   it("status delegates and returns the upstream status", async () => {
@@ -15,7 +15,9 @@ describe("WorkflowManager services", () => {
     const queryCtx = {};
     const service = makeWorkflowManagerQueryService(upstream, queryCtx);
 
-    const result = await Effect.runPromise(service.status("wf-1" as unknown as WorkflowId));
+    const result = await Effect.runPromise(
+      service.status("wf-1" as unknown as WorkflowId),
+    );
 
     expect(result).toEqual({ type: "completed", result: 42 });
     expect(upstream.status).toHaveBeenCalledWith(queryCtx, "wf-1");
@@ -55,10 +57,16 @@ describe("WorkflowManager services", () => {
       paginationOpts: { cursor: "cursor-1", numItems: 5 },
     };
 
-    const result = await Effect.runPromise(service.listByName("generateTaggedNote", options));
+    const result = await Effect.runPromise(
+      service.listByName("generateTaggedNote", options),
+    );
 
     expect(result).toBe(upstreamResult);
-    expect(upstream.listByName).toHaveBeenCalledWith(queryCtx, "generateTaggedNote", options);
+    expect(upstream.listByName).toHaveBeenCalledWith(
+      queryCtx,
+      "generateTaggedNote",
+      options,
+    );
   });
 
   it("listSteps delegates and preserves workflow id and options", async () => {
@@ -73,7 +81,9 @@ describe("WorkflowManager services", () => {
       paginationOpts: { cursor: null, numItems: 20 },
     };
 
-    const result = await Effect.runPromise(service.listSteps("wf-9" as any, options));
+    const result = await Effect.runPromise(
+      service.listSteps("wf-9" as any, options),
+    );
 
     expect(result).toBe(upstreamResult);
     expect(upstream.listSteps).toHaveBeenCalledWith(queryCtx, "wf-9", options);

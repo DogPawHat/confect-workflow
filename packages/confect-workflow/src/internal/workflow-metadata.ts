@@ -1,5 +1,4 @@
-import { Ref } from "@confect/core";
-import type * as FunctionSpec from "@confect/core/FunctionSpec";
+import { Ref, type FunctionSpec } from "@confect/core";
 import { Predicate, Schema } from "effect";
 
 import type { WorkflowMetadata, WorkflowMetadataCarrier } from "../types.js";
@@ -24,7 +23,9 @@ export const attachWorkflowMetadata = <
   return value as Value & WorkflowMetadataCarrier<Args, Returns>;
 };
 
-export const hasWorkflowMetadata = (value: unknown): value is WorkflowMetadataCarrier =>
+export const hasWorkflowMetadata = (
+  value: unknown,
+): value is WorkflowMetadataCarrier =>
   Predicate.hasProperty(value, WorkflowMetadataKey);
 
 export const getWorkflowMetadataOrThrow = (
@@ -46,5 +47,6 @@ export const getWorkflowMetadataFromRef = (ref: Ref.Any): WorkflowMetadata =>
     `workflow ref '${Ref.getConvexFunctionName(ref)}'`,
   );
 
-export const isWorkflowSpec = (functionSpec: FunctionSpec.AnyWithProps): boolean =>
-  hasWorkflowMetadata(functionSpec);
+export const isWorkflowSpec = (
+  functionSpec: FunctionSpec.AnyWithProps,
+): boolean => hasWorkflowMetadata(functionSpec);
