@@ -19,7 +19,7 @@
     "@confect/server": "catalog:",
     "@convex-dev/workflow": "catalog:",
     "@convex-dev/workpool": "catalog:",
-    "@dogpawhat/confect-workflow": "workspace:*",
+    "confect-workflow": "workspace:*",
     "@effect/platform": "catalog:",
     "convex": "catalog:",
     "effect": "catalog:",

@@ -8,14 +8,14 @@ catalog:
   "@confect/react": ^3.0.0
   "@confect/server": ^3.0.0
   "@confect/test": ^3.0.0
-  "@convex-dev/workflow": ^0.3.6
-  "@convex-dev/workpool": ^0.4.2
+  "@convex-dev/workflow": ^0.3.7
+  "@convex-dev/workpool": ^0.4.3
   "@effect/platform": ^0.94.5
   "@effect/vitest": ^0.29.0
   "@types/node": ^24
   convex: ^1.34.0
   effect: ^3.21.0
-  typescript: ^5
+  typescript: ^6.0.2
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vitest: npm:@voidzero-dev/vite-plus-test@latest
   vite-plus: latest

@@ -13,8 +13,8 @@
     "convex": "catalog:",
     "effect": "catalog:",
     "npmx-connector": "catalog:",
-    "typescript": "^5.9.3",
-    "vite-plus": "latest"
+    "typescript": "catalog:",
+    "vite-plus": "catalog:"
   },
   "engines": {
     "node": ">=22.12.0"
