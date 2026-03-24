@@ -1,8 +1,8 @@
 import { GroupSpec, Ref, Refs, Spec } from "@confect/core";
 import { Effect, Schema } from "effect";
 import { describe, expect, it } from "vite-plus/test";
-import { defineWorkflow } from "../src/define.js";
-import { isWorkflowSpec } from "../src/internal/workflow-metadata.js";
+import { defineWorkflow } from "../src/server.js";
+import { isWorkflowSpec } from "./utils.js";
 import { workflowSpec } from "../src/spec.js";
 
 describe("Workflow metadata failure modes", () => {
@@ -20,10 +20,16 @@ describe("Workflow metadata failure modes", () => {
     });
 
     const spec = Spec.make().add(
-      GroupSpec.make("workflows").addFunction(workflowSpec(workflow, "countWorkflow")),
+      GroupSpec.make("workflows").addFunction(
+        workflowSpec(workflow, "countWorkflow"),
+      ),
     );
     const refs = Refs.make(spec);
 
-    expect(isWorkflowSpec(Ref.getFunctionSpec(refs.internal.workflows.countWorkflow))).toBe(true);
+    expect(
+      isWorkflowSpec(
+        Ref.getFunctionSpec(refs.internal.workflows.countWorkflow),
+      ),
+    ).toBe(true);
   });
 });

@@ -13,10 +13,7 @@ export interface WorkflowMetadataCarrier<
   Args extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
   Returns extends Schema.Schema.AnyNoContext = Schema.Schema.AnyNoContext,
 > {
-  readonly ["@confect-workflow/WorkflowMetadata"]: WorkflowMetadata<
-    Args,
-    Returns
-  >;
+  readonly ["@confect-workflow/WorkflowMetadata"]: WorkflowMetadata<Args, Returns>;
 }
 
 export type WorkflowMutation<

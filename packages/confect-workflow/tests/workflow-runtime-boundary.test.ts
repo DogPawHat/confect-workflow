@@ -4,7 +4,7 @@ import {
 } from "@convex-dev/workflow";
 import { Effect, Schema } from "effect";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
-import { defineWorkflow } from "../src/define.js";
+import { defineWorkflow } from "../src/server.js";
 
 describe("Workflow runtime boundary", () => {
   afterEach(() => {
@@ -18,7 +18,9 @@ describe("Workflow runtime boundary", () => {
     vi.spyOn(UpstreamWorkflowManager.prototype, "define").mockImplementation(
       function (this: any, definition) {
         capturedDefinition = definition;
-        capturedOptions = this.options as { workpoolOptions: unknown } | undefined;
+        capturedOptions = this.options as
+          | { workpoolOptions: unknown }
+          | undefined;
         return vi.fn() as any;
       },
     );
@@ -36,7 +38,9 @@ describe("Workflow runtime boundary", () => {
 
   it("Workflow.define decodes args before the handler runs", async () => {
     const capture = captureDefinition();
-    const handler = vi.fn(({ count }: { count: number }) => Effect.succeed(count + 1));
+    const handler = vi.fn(({ count }: { count: number }) =>
+      Effect.succeed(count + 1),
+    );
 
     defineWorkflow({} as any, {
       args: Schema.Struct({ count: Schema.NumberFromString }),
@@ -44,7 +48,10 @@ describe("Workflow runtime boundary", () => {
       handler,
     });
 
-    const result = await capture.definition.handler({ workflowId: "wf-1" } as any, { count: "41" });
+    const result = await capture.definition.handler(
+      { workflowId: "wf-1" } as any,
+      { count: "41" },
+    );
 
     expect(handler).toHaveBeenCalledOnce();
     expect(handler).toHaveBeenCalledWith({ count: 41 });
@@ -60,7 +67,10 @@ describe("Workflow runtime boundary", () => {
       handler: ({ count }) => Effect.succeed(count + 1),
     });
 
-    const result = await capture.definition.handler({ workflowId: "wf-1" } as any, { count: "41" });
+    const result = await capture.definition.handler(
+      { workflowId: "wf-1" } as any,
+      { count: "41" },
+    );
 
     expect(result).toBe("42");
   });

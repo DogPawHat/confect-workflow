@@ -8,7 +8,7 @@ import type {
 } from "convex/server";
 import { makeFunctionReference } from "convex/server";
 import { Context, Effect, Layer, Schema } from "effect";
-import { getWorkflowMetadataFromRef } from "../../internal/workflow-metadata.ts";
+import { getWorkflowMetadataFromRef } from "../../internal/workflow-metadata.js";
 
 export interface WorkflowContextShape {
   readonly workflowId: WorkflowId;
@@ -56,9 +56,10 @@ export interface WorkflowContextShape {
   }) => Effect.Effect<T>;
 }
 
-export class WorkflowContext extends Context.Tag(
-  "confect-workflow/src/WorkflowContext",
-)<WorkflowContext, WorkflowContextShape>() {
+export class WorkflowContext extends Context.Tag("confect-workflow/src/WorkflowContext")<
+  WorkflowContext,
+  WorkflowContextShape
+>() {
   static make = (ctx: WorkflowCtx) =>
     Layer.succeed(WorkflowContext, {
       workflowId: ctx.workflowId,
@@ -69,9 +70,7 @@ export class WorkflowContext extends Context.Tag(
       ) => bridgeFunction(ctx, "runQuery", query, args),
 
       runMutation: (
-        mutation:
-          | Ref.AnyMutation
-          | FunctionReference<"mutation", FunctionVisibility>,
+        mutation: Ref.AnyMutation | FunctionReference<"mutation", FunctionVisibility>,
         args: unknown,
       ) => bridgeFunction(ctx, "runMutation", mutation, args),
 
@@ -102,9 +101,9 @@ const bridgeRef = <Ref_ extends Ref.Any>(
   const provenance = functionSpec.functionProvenance;
 
   if (provenance._tag !== "Confect") {
-    return Effect.promise(() =>
-      (ctx as any)[method](functionRef, args),
-    ) as Effect.Effect<Ref.Returns<Ref_>>;
+    return Effect.promise(() => (ctx as any)[method](functionRef, args)) as Effect.Effect<
+      Ref.Returns<Ref_>
+    >;
   }
 
   return Schema.encode(provenance.args)(args).pipe(
@@ -148,9 +147,7 @@ const bridgeWorkflowRef = <Workflow extends Ref.AnyMutation>(
       Effect.promise(() => ctx.runWorkflow(functionRef, encodedArgs)),
     ),
     Effect.andThen((encodedReturns) =>
-      Schema.decode(workflowMetadata.returns)(encodedReturns).pipe(
-        Effect.orDie,
-      ),
+      Schema.decode(workflowMetadata.returns)(encodedReturns).pipe(Effect.orDie),
     ),
   ) as Effect.Effect<Ref.Returns<Workflow>>;
 };

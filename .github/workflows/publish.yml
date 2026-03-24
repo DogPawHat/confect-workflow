@@ -26,7 +26,7 @@ jobs:
         run: vp install
 
       - name: Run tests
-        run: vp test
+        run: vp run --filter packages/confect-workflow test
 
       - name: Check packages
         run: vp check

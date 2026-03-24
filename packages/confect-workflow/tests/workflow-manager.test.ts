@@ -1,8 +1,8 @@
 import { Effect, Schema } from "effect";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { defineWorkflow } from "../src/define.js";
+import { defineWorkflow } from "../src/server.js";
 import { workflowSpec } from "../src/spec.js";
-import { makeWorkflowManagerMutationService } from "../src/server/services/workflow-manager.ts";
+import { makeWorkflowManagerMutationService } from "../src/server/services/workflow-manager.js";
 
 describe("WorkflowManagerRequiresMutation", () => {
   it("encodes workflow args before delegating start to upstream", async () => {

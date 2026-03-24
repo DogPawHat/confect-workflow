@@ -18,4 +18,9 @@ export default defineConfig({
     },
   },
   fmt: {},
+  test: {
+    root: import.meta.dirname,
+    include: ["tests/**/*.test.ts"],
+    exclude: ["confect/**/*.spec.ts"],
+  },
 });

@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import {
   makeWorkflowManagerMutationService,
   makeWorkflowManagerQueryService,
-} from "../src/server/services/workflow-manager.ts";
+} from "../src/server/services/workflow-manager.js";
 
 describe("WorkflowManager services", () => {
   it("status delegates and returns the upstream status", async () => {

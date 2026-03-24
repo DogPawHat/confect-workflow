@@ -16,19 +16,13 @@ import {
 } from "convex/server";
 import type { Validator } from "convex/values";
 import { Context, Effect, Layer, Schema } from "effect";
-import { getWorkflowMetadataFromRef } from "../../internal/workflow-metadata.ts";
+import { getWorkflowMetadataFromRef } from "../../internal/workflow-metadata.js";
 
-type WorkflowComponent = ConstructorParameters<
-  typeof UpstreamWorkflowManager
->[0];
-type PublicWorkflow = Awaited<
-  ReturnType<UpstreamWorkflowManager["list"]>
->["page"][number];
+type WorkflowComponent = ConstructorParameters<typeof UpstreamWorkflowManager>[0];
+type PublicWorkflow = Awaited<ReturnType<UpstreamWorkflowManager["list"]>>["page"][number];
 
 export type WorkflowManagerRequiresQueryType = {
-  readonly status: (
-    workflowId: WorkflowId,
-  ) => Effect.Effect<WorkflowStatus, never, never>;
+  readonly status: (workflowId: WorkflowId) => Effect.Effect<WorkflowStatus, never, never>;
 
   readonly list: (opts?: {
     order?: "asc" | "desc";
@@ -85,9 +79,7 @@ export class WorkflowManagerRequiresMutation extends Context.Tag(
       options?: { from?: number | string; startAsync?: boolean },
     ) => Effect.Effect<void, never, never>;
 
-    readonly cleanup: (
-      workflowId: WorkflowId,
-    ) => Effect.Effect<boolean, never, never>;
+    readonly cleanup: (workflowId: WorkflowId) => Effect.Effect<boolean, never, never>;
 
     readonly sendEvent: <T = null, Name extends string = string>(
       args: (
@@ -122,13 +114,11 @@ export function makeWorkflowManagerQueryService(
   queryCtx: any,
 ): WorkflowManagerRequiresQuery["Type"] {
   return {
-    status: (workflowId) =>
-      Effect.promise(() => upstream.status(queryCtx, workflowId)),
+    status: (workflowId) => Effect.promise(() => upstream.status(queryCtx, workflowId)),
 
     list: (opts) => Effect.promise(() => upstream.list(queryCtx, opts)),
 
-    listByName: (name, opts) =>
-      Effect.promise(() => upstream.listByName(queryCtx, name, opts)),
+    listByName: (name, opts) => Effect.promise(() => upstream.listByName(queryCtx, name, opts)),
 
     listSteps: (workflowId, opts) =>
       Effect.promise(() => upstream.listSteps(queryCtx, workflowId, opts)),
@@ -142,34 +132,25 @@ export function makeWorkflowManagerMutationService(
   return {
     start: (workflow, args, startOptions) => {
       const functionName = Ref.getConvexFunctionName(workflow);
-      const functionRef = makeFunctionReference<"mutation">(
-        functionName,
-      ) as any;
+      const functionRef = makeFunctionReference<"mutation">(functionName) as any;
       const workflowMetadata = getWorkflowMetadataFromRef(workflow);
 
       return Schema.encode(workflowMetadata.args)(args).pipe(
         Effect.orDie,
         Effect.andThen((encodedArgs) =>
-          Effect.promise(() =>
-            upstream.start(mutationCtx, functionRef, encodedArgs, startOptions),
-          ),
+          Effect.promise(() => upstream.start(mutationCtx, functionRef, encodedArgs, startOptions)),
         ),
       );
     },
 
     restart: (workflowId, restartOptions) =>
-      Effect.promise(() =>
-        upstream.restart(mutationCtx, workflowId, restartOptions),
-      ),
+      Effect.promise(() => upstream.restart(mutationCtx, workflowId, restartOptions)),
 
-    cleanup: (workflowId) =>
-      Effect.promise(() => upstream.cleanup(mutationCtx, workflowId)),
+    cleanup: (workflowId) => Effect.promise(() => upstream.cleanup(mutationCtx, workflowId)),
 
-    sendEvent: (args) =>
-      Effect.promise(() => upstream.sendEvent(mutationCtx, args as any)) as any,
+    sendEvent: (args) => Effect.promise(() => upstream.sendEvent(mutationCtx, args as any)) as any,
 
-    createEvent: (args) =>
-      Effect.promise(() => upstream.createEvent(mutationCtx, args)),
+    createEvent: (args) => Effect.promise(() => upstream.createEvent(mutationCtx, args)),
   };
 }
 
@@ -183,13 +164,7 @@ export function makeWorkflowManagerLayers(
   );
 
   return {
-    queryLayer: Layer.provide(
-      WorkflowManagerRequiresQuery.layer,
-      innerWfManagerLayer,
-    ),
-    mutationLayer: Layer.provide(
-      WorkflowManagerRequiresMutation.layer,
-      innerWfManagerLayer,
-    ),
+    queryLayer: Layer.provide(WorkflowManagerRequiresQuery.layer, innerWfManagerLayer),
+    mutationLayer: Layer.provide(WorkflowManagerRequiresMutation.layer, innerWfManagerLayer),
   };
 }

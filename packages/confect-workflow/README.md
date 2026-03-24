@@ -67,10 +67,7 @@ Exports:
 ```ts
 import { Effect, Schema } from "effect";
 import { api, components } from "../convex/_generated/api";
-import {
-  defineWorkflow,
-  WorkflowContext,
-} from "confect-workflow/server";
+import { defineWorkflow, WorkflowContext } from "confect-workflow/server";
 
 export const generateTaggedNote = defineWorkflow(components.workflow, {
   args: Schema.Struct({ text: Schema.String }),
@@ -133,10 +130,7 @@ export const startGenerateTaggedNote = FunctionImpl.make(
   ({ text }) =>
     Effect.gen(function* () {
       const workflowManager = yield* WorkflowManagerRequiresMutation;
-      return yield* workflowManager.start(
-        refs.internal.workflows.generateTaggedNote,
-        { text },
-      );
+      return yield* workflowManager.start(refs.internal.workflows.generateTaggedNote, { text });
     }).pipe(Effect.provide(workflowManagerLayers.mutationLayer), Effect.orDie),
 );
 ```

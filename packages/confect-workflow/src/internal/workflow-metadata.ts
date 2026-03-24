@@ -46,7 +46,3 @@ export const getWorkflowMetadataFromRef = (ref: Ref.Any): WorkflowMetadata =>
     Ref.getFunctionSpec(ref),
     `workflow ref '${Ref.getConvexFunctionName(ref)}'`,
   );
-
-export const isWorkflowSpec = (
-  functionSpec: FunctionSpec.AnyWithProps,
-): boolean => hasWorkflowMetadata(functionSpec);

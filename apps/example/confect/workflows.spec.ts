@@ -1,6 +1,6 @@
 import { FunctionSpec, GroupSpec } from "@confect/core";
 import { Schema } from "effect";
-import { workflowSpec } from "@dogpawhat/confect-workflow/spec";
+import { workflowSpec } from "confect-workflow/spec";
 import { generateTaggedNote } from "./workflows";
 
 export const workflows = GroupSpec.make("workflows")
