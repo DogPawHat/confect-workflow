@@ -5,4 +5,7 @@ export default defineConfig({
     "*": "vp check --fix",
   },
   lint: { options: { typeAware: true, typeCheck: true } },
+  test: {
+    projects: ["packages/confect-workflow", "apps/example"],
+  },
 });

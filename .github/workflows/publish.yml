@@ -26,11 +26,11 @@ jobs:
         run: vp install
 
       - name: Run tests
-        run: vp run --filter packages/confect-workflow test
+        run: vp test packages/confect-workflow
 
       - name: Check packages
-        run: vp check
+        run: vp check packages/confect-workflow
 
       - name: Publish package
         working-directory: packages/confect-workflow
-        run: vp pm publish --access public --no-git-checks
+        run: vp pm publish --filter packages/confect-workflow --no-git-checks
