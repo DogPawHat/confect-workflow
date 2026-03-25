@@ -5,12 +5,8 @@ import * as React from "react";
 import refs from "../confect/_generated/refs.js";
 
 const NoteList = React.lazy(() => import("./components/note-list.js"));
-const WorkflowPanel = React.lazy(
-  () => import("./components/workflow-panel.js"),
-);
-const HttpEndpoints = React.lazy(
-  () => import("./components/http-endpoints.js"),
-);
+const WorkflowPanel = React.lazy(() => import("./components/workflow-panel.js"));
+const HttpEndpoints = React.lazy(() => import("./components/http-endpoints.js"));
 export function App() {
   const convexClient = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -90,17 +86,9 @@ const Page = () => {
 
       <br />
 
-      <textarea
-        rows={4}
-        cols={50}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
+      <textarea rows={4} cols={50} value={note} onChange={(e) => setNote(e.target.value)} />
       <br />
-      <button
-        type="button"
-        onClick={() => void insertNote({ text: note }).then(() => setNote(""))}
-      >
+      <button type="button" onClick={() => void insertNote({ text: note }).then(() => setNote(""))}>
         Insert note
       </button>
 

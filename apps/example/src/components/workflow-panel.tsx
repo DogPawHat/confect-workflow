@@ -6,9 +6,7 @@ import refs from "../../confect/_generated/refs.js";
 function WorkflowPanel() {
   const [workflowText, setWorkflowText] = useState("Hello from workflow");
   const [workflowId, setWorkflowId] = useState<string | null>(null);
-  const startWorkflow = useMutation(
-    refs.public.workflows.startGenerateTaggedNote,
-  );
+  const startWorkflow = useMutation(refs.public.workflows.startGenerateTaggedNote);
   const sendApproval = useMutation(refs.public.workflows.sendApprovalEvent);
   const cleanup = useMutation(refs.public.workflows.cleanupWorkflow);
 

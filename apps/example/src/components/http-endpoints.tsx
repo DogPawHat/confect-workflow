@@ -5,10 +5,7 @@ import * as React from "react";
 import { Api } from "../../confect/path-prefix.http.js";
 
 const ApiClient = HttpApiClient.make(Api, {
-  baseUrl: import.meta.env.VITE_CONVEX_URL.replace(
-    "convex.cloud",
-    "convex.site",
-  ),
+  baseUrl: import.meta.env.VITE_CONVEX_URL.replace("convex.cloud", "convex.site"),
 });
 
 const getFirst = ApiClient.pipe(
@@ -18,20 +15,13 @@ const getFirst = ApiClient.pipe(
 );
 
 function HttpEndpoints() {
-  const [getResponse, setGetResponse] = React.useState<Exit.Exit<
-    any,
-    any
-  > | null>(null);
+  const [getResponse, setGetResponse] = React.useState<Exit.Exit<any, any> | null>(null);
 
   return (
     <div>
       <button
         type="button"
-        onClick={() =>
-          getFirst
-            .pipe(Effect.runPromiseExit)
-            .then((exit) => setGetResponse(exit))
-        }
+        onClick={() => getFirst.pipe(Effect.runPromiseExit).then((exit) => setGetResponse(exit))}
       >
         HTTP GET /path-prefix/get-first
       </button>

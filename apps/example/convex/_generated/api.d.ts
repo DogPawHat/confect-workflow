@@ -41,12 +41,7 @@ export declare const api: {
   };
   notesAndRandom: {
     notes: {
-      delete_: FunctionReference<
-        "mutation",
-        "public",
-        { noteId: Id<"notes"> },
-        null
-      >;
+      delete_: FunctionReference<"mutation", "public", { noteId: Id<"notes"> }, null>;
       getFirst: FunctionReference<
         "query",
         "public",
@@ -65,12 +60,7 @@ export declare const api: {
             };
           }
       >;
-      insert: FunctionReference<
-        "mutation",
-        "public",
-        { text: string },
-        Id<"notes">
-      >;
+      insert: FunctionReference<"mutation", "public", { text: string }, Id<"notes">>;
       list: FunctionReference<
         "query",
         "public",
@@ -91,30 +81,15 @@ export declare const api: {
     };
   };
   workflows: {
-    cleanupWorkflow: FunctionReference<
-      "mutation",
-      "public",
-      { workflowId: string },
-      boolean
-    >;
-    getWorkflowStatus: FunctionReference<
-      "query",
-      "public",
-      { workflowId: string },
-      any
-    >;
+    cleanupWorkflow: FunctionReference<"mutation", "public", { workflowId: string }, boolean>;
+    getWorkflowStatus: FunctionReference<"query", "public", { workflowId: string }, any>;
     sendApprovalEvent: FunctionReference<
       "mutation",
       "public",
       { approved: boolean; workflowId: string },
       null
     >;
-    startGenerateTaggedNote: FunctionReference<
-      "mutation",
-      "public",
-      { text: string },
-      string
-    >;
+    startGenerateTaggedNote: FunctionReference<"mutation", "public", { text: string }, string>;
   };
 };
 
@@ -273,9 +248,7 @@ export declare const components: {
         {
           generationNumber: number;
           steps: Array<{
-            retry?:
-              | boolean
-              | { base: number; initialBackoffMs: number; maxAttempts: number };
+            retry?: boolean | { base: number; initialBackoffMs: number; maxAttempts: number };
             schedulerOptions?: { runAt?: number } | { runAfter?: number };
             step:
               | {
@@ -391,12 +364,7 @@ export declare const components: {
       >;
     };
     workflow: {
-      cancel: FunctionReference<
-        "mutation",
-        "internal",
-        { workflowId: string },
-        null
-      >;
+      cancel: FunctionReference<"mutation", "internal", { workflowId: string }, null>;
       cleanup: FunctionReference<
         "mutation",
         "internal",

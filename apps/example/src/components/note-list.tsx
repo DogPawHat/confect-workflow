@@ -16,10 +16,7 @@ function NoteList() {
       {Array.map(notes, (note) => (
         <li key={note._id}>
           <p>{note.text}</p>
-          <button
-            type="button"
-            onClick={() => void deleteNote({ noteId: note._id })}
-          >
+          <button type="button" onClick={() => void deleteNote({ noteId: note._id })}>
             Delete note
           </button>
         </li>
