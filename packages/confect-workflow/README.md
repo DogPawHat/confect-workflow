@@ -41,7 +41,8 @@ Use this only from `*.spec.ts` files.
 
 Exports:
 
-- `workflowSpec(workflow, name)`
+- `workflowSpec({ name, args, returns })`
+- `WorkflowFunctionSpec` type
 - `WorkflowMutation` type
 
 ### `confect-workflow/server`
@@ -68,10 +69,9 @@ Exports:
 import { Effect, Schema } from "effect";
 import { api, components } from "../convex/_generated/api";
 import { defineWorkflow, WorkflowContext } from "confect-workflow/server";
+import { generateTaggedNote } from "./workflows.spec";
 
-export const generateTaggedNote = defineWorkflow(components.workflow, {
-  args: Schema.Struct({ text: Schema.String }),
-  returns: Schema.Null,
+export const generateTaggedNoteWorkflow = defineWorkflow(components.workflow, generateTaggedNote, {
   handler: ({ text }) =>
     Effect.gen(function* () {
       const ctx = yield* WorkflowContext;
@@ -84,21 +84,25 @@ export const generateTaggedNote = defineWorkflow(components.workflow, {
 });
 ```
 
-`defineWorkflow(...)` creates the upstream workflow mutation and attaches schema metadata used later by the wrapper.
+`defineWorkflow(...)` creates the upstream workflow mutation from a workflow spec and preserves schema-aware behavior at the wrapper boundary.
 
 ### 2. Add it to your Confect spec
 
 ```ts
 import { GroupSpec } from "@confect/core";
+import { Schema } from "effect";
 import { workflowSpec } from "confect-workflow/spec";
-import { generateTaggedNote } from "./workflows";
 
-export const workflows = GroupSpec.make("workflows").addFunction(
-  workflowSpec(generateTaggedNote, "generateTaggedNote"),
-);
+export const generateTaggedNote = workflowSpec({
+  name: "generateTaggedNote",
+  args: Schema.Struct({ text: Schema.String }),
+  returns: Schema.Null,
+});
+
+export const workflows = GroupSpec.make("workflows").addFunction(generateTaggedNote);
 ```
 
-`workflowSpec(...)` is the spec-side companion to `defineWorkflow(...)`. It keeps workflow registration aligned with normal Confect spec composition.
+`workflowSpec(...)` is the spec-side source of truth. It keeps workflow registration aligned with normal Confect spec composition without importing runtime workflow code into the client-visible spec.
 
 ### 3. Register it and start it from server code
 
@@ -112,7 +116,7 @@ import {
   makeWorkflowManagerLayers,
   WorkflowManagerRequiresMutation,
 } from "confect-workflow/server";
-import { generateTaggedNote } from "./workflows";
+import { generateTaggedNoteWorkflow } from "./workflows";
 
 const workflowManagerLayers = makeWorkflowManagerLayers(components.workflow);
 
@@ -120,7 +124,7 @@ export const generateTaggedNoteImpl = FunctionImpl.make(
   api,
   "workflows",
   "generateTaggedNote",
-  generateTaggedNote,
+  generateTaggedNoteWorkflow,
 );
 
 export const startGenerateTaggedNote = FunctionImpl.make(
@@ -167,8 +171,8 @@ The wrapper encodes and decodes workflow args and returns with Effect Schema at 
 
 Recommended layout:
 
-- `confect/workflows.ts` for workflow definitions
 - `confect/workflows.spec.ts` for `workflowSpec(...)`
+- `confect/workflows.ts` for workflow definitions that consume the spec
 - `confect/workflows.impl.ts` for `FunctionImpl.make(...)` and workflow manager usage
 
 This is the same pattern used in the example app:

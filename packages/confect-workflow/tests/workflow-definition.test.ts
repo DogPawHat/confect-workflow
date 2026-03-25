@@ -17,15 +17,13 @@ import { isWorkflowSpec } from "./utils.js";
 
 describe("Workflow", () => {
   it("creates plain convex internal mutation specs and preserves workflow metadata on refs", () => {
-    const workflow = defineWorkflow({} as any, {
+    const countWorkflow = workflowSpec({
+      name: "countWorkflow",
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
-      handler: ({ count }) => Effect.succeed(count + 1),
     });
 
-    const workflowGroup = GroupSpec.make("workflows").addFunction(
-      workflowSpec(workflow, "countWorkflow"),
-    );
+    const workflowGroup = GroupSpec.make("workflows").addFunction(countWorkflow);
     const spec = Spec.make().add(workflowGroup);
     const refs = Refs.make(spec);
     const workflowRef = refs.internal.workflows.countWorkflow;
@@ -38,15 +36,16 @@ describe("Workflow", () => {
   });
 
   it("registers workflow definitions through RegisteredConvexFunction without a custom maker", () => {
-    const workflow = defineWorkflow({} as any, {
+    const countWorkflow = workflowSpec({
+      name: "countWorkflow",
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
+    });
+    const workflow = defineWorkflow({} as any, countWorkflow, {
       handler: ({ count }) => Effect.succeed(count + 1),
     });
 
-    const workflowGroup = GroupSpec.make("workflows").addFunction(
-      workflowSpec(workflow, "countWorkflow"),
-    );
+    const workflowGroup = GroupSpec.make("workflows").addFunction(countWorkflow);
     const notesGroup = GroupSpec.make("notes").addFunction(
       FunctionSpec.publicMutation({
         name: "insert",

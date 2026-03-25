@@ -25,8 +25,8 @@ https://github.com/get-convex/workflow
   - No custom registered-function maker
   - No custom generated `registeredFunctions` override
 - Keep workflow definitions as first-class plain internal mutations in Confect
-  - `Workflow.define(...)` creates the upstream workflow mutation
-  - `Workflow.spec(workflowFn, name)` creates a `FunctionSpec.convexInternalMutation<typeof workflowFn>()(name)`
+  - `workflowSpec({ name, args, returns })` creates the workflow's plain Convex internal mutation spec
+  - `defineWorkflow(component, workflowSpec, { handler, workpoolOptions? })` creates the upstream workflow mutation
   - app code uses normal `FunctionImpl.make(...)` to register the workflow
 - Preserve schema-aware behavior at wrapper boundaries even though plain Convex provenance is schema-blind
   - decode workflow args before the Effect handler runs
@@ -37,10 +37,10 @@ https://github.com/get-convex/workflow
 ## Implemented Design
 
 - `confect-workflow/src/Workflow.ts` is the wrapper entry point
-  - `Workflow.define(component, { args, returns, handler, workpoolOptions? })`
-  - `Workflow.spec(workflowFn, name)`
-- Wrapper-owned schema metadata is attached to the workflow function and copied onto the Confect function spec
-  - this preserves schema-aware bridging without using Confect provenance for the workflow function itself
+  - `workflowSpec({ name, args, returns })`
+  - `defineWorkflow(component, workflowSpec, { handler, workpoolOptions? })`
+- Wrapper-owned schema metadata is attached to the workflow spec
+  - this preserves schema-aware bridging while keeping the Confect spec as the source of truth
 - `WorkflowContext` wraps the upstream workflow ctx and exposes:
   - `runQuery`
   - `runMutation`
@@ -51,7 +51,7 @@ https://github.com/get-convex/workflow
   - Confect refs, with normal Confect provenance-aware bridging
   - raw Convex refs, passed through unchanged
 - `WorkflowManagerRequiresQuery` and `WorkflowManagerRequiresMutation` expose Effect-returning wrappers around the upstream manager
-- The example app defines its workflow in `confect/workflows.ts`, describes it in `confect/spec/workflows.ts`, and registers it in `confect/impl/workflows.ts`
+- The example app defines its workflow spec in `confect/workflows.spec.ts`, defines the runtime workflow in `confect/workflows.ts`, and registers it in `confect/workflows.impl.ts`
 
 ## Goal
 

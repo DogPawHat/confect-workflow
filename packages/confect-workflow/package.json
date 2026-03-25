@@ -34,6 +34,6 @@
     "effect": "catalog:"
   },
   "inlinedDependencies": {
-    "@convex-dev/workpool": "0.4.2"
+    "@convex-dev/workpool": "0.4.3"
   }
 }

@@ -6,14 +6,17 @@ import { makeWorkflowManagerMutationService } from "../src/server/services/workf
 
 describe("WorkflowManagerRequiresMutation", () => {
   it("encodes workflow args before delegating start to upstream", async () => {
-    const workflow = defineWorkflow({} as any, {
+    const countWorkflow = workflowSpec({
+      name: "countWorkflow",
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
+    });
+    defineWorkflow({} as any, countWorkflow, {
       handler: ({ count }) => Effect.succeed(count + 1),
     });
 
     const workflowRef = {
-      "@confect/core/api/HiddenFunctionSpecKey": workflowSpec(workflow, "countWorkflow"),
+      "@confect/core/api/HiddenFunctionSpecKey": countWorkflow,
       "@confect/core/api/HiddenConvexFunctionNameKey": "workflows:countWorkflow",
     } as any;
 

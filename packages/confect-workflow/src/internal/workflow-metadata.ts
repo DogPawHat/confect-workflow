@@ -32,7 +32,7 @@ export const getWorkflowMetadataOrThrow = (
 ): WorkflowMetadata => {
   if (!hasWorkflowMetadata(value)) {
     throw new Error(
-      `Expected ${label} to carry workflow schema metadata. Only values created via Workflow.define/Workflow.spec are supported.`,
+      `Expected ${label} to carry workflow schema metadata. Only values created via workflowSpec(...) are supported.`,
     );
   }
 

@@ -6,8 +6,8 @@ import {
 import type { WorkpoolOptions } from "@convex-dev/workpool";
 import { Effect, Schema } from "effect";
 
-import { attachWorkflowMetadata } from "../internal/workflow-metadata.js";
-import type { WorkflowMutation } from "../types.js";
+import { getWorkflowMetadataOrThrow } from "../internal/workflow-metadata.js";
+import type { WorkflowFunctionSpec, WorkflowMutation } from "../types.js";
 import { WorkflowContext } from "./services/workflow-context.js";
 
 type WorkflowComponent = ConstructorParameters<typeof UpstreamWorkflowManager>[0];
@@ -18,18 +18,16 @@ export function defineWorkflow<
   E = never,
 >(
   component: WorkflowComponent,
+  workflowSpec: WorkflowFunctionSpec<Args, Returns>,
   {
-    args,
-    returns,
     handler,
     workpoolOptions,
   }: {
-    args: Args;
-    returns: Returns;
     handler: (args: Args["Type"]) => Effect.Effect<Returns["Type"], E, WorkflowContext>;
     workpoolOptions?: WorkpoolOptions;
   },
 ): WorkflowMutation<Args, Returns> {
+  const { args, returns } = getWorkflowMetadataOrThrow(workflowSpec, "workflow spec");
   const manager = new UpstreamWorkflowManager(
     component,
     workpoolOptions ? { workpoolOptions } : undefined,
@@ -51,8 +49,5 @@ export function defineWorkflow<
       ),
   };
 
-  return attachWorkflowMetadata(manager.define(definition), {
-    args,
-    returns,
-  }) as WorkflowMutation<Args, Returns>;
+  return manager.define(definition) as WorkflowMutation<Args, Returns>;
 }

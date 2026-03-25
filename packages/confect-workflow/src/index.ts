@@ -1,1 +1,6 @@
-export type { WorkflowMetadata, WorkflowMetadataCarrier, WorkflowMutation } from "./types.js";
+export type {
+  WorkflowFunctionSpec,
+  WorkflowMetadata,
+  WorkflowMetadataCarrier,
+  WorkflowMutation,
+} from "./types.js";

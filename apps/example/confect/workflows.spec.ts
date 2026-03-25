@@ -1,10 +1,15 @@
 import { FunctionSpec, GroupSpec } from "@confect/core";
 import { Schema } from "effect";
 import { workflowSpec } from "confect-workflow/spec";
-import { generateTaggedNote } from "./workflows";
+
+export const generateTaggedNote = workflowSpec({
+  name: "generateTaggedNote",
+  args: Schema.Struct({ text: Schema.String }),
+  returns: Schema.Null,
+});
 
 export const workflows = GroupSpec.make("workflows")
-  .addFunction(workflowSpec(generateTaggedNote, "generateTaggedNote"))
+  .addFunction(generateTaggedNote)
   .addFunction(
     FunctionSpec.publicMutation({
       name: "startGenerateTaggedNote",

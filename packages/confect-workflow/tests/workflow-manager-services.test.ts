@@ -176,7 +176,7 @@ describe("WorkflowManager services", () => {
     );
 
     expect(() => service.start(plainMutationRef, { count: 1 } as any)).toThrow(
-      "Expected workflow ref 'notes:testMutation' to carry workflow schema metadata. Only values created via Workflow.define/Workflow.spec are supported.",
+      "Expected workflow ref 'notes:testMutation' to carry workflow schema metadata. Only values created via workflowSpec(...) are supported.",
     );
   });
 });

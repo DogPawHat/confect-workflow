@@ -1,3 +1,6 @@
+import type * as FunctionProvenance from "@confect/core/FunctionProvenance";
+import type * as FunctionSpec from "@confect/core/FunctionSpec";
+import type * as RuntimeAndFunctionType from "@confect/core/RuntimeAndFunctionType";
 import type { RegisteredMutation } from "convex/server";
 import type { Schema } from "effect";
 
@@ -19,5 +22,16 @@ export interface WorkflowMetadataCarrier<
 export type WorkflowMutation<
   Args extends Schema.Schema.AnyNoContext,
   Returns extends Schema.Schema.AnyNoContext,
-> = RegisteredMutation<"internal", Args["Type"], Returns["Type"]> &
+> = RegisteredMutation<"internal", Args["Encoded"], Promise<Returns["Encoded"]>>;
+
+export type WorkflowFunctionSpec<
+  Args extends Schema.Schema.AnyNoContext,
+  Returns extends Schema.Schema.AnyNoContext,
+  Name extends string = string,
+> = FunctionSpec.FunctionSpec<
+  RuntimeAndFunctionType.ConvexMutation,
+  "internal",
+  Name,
+  FunctionProvenance.Convex<Args["Encoded"], Promise<Returns["Encoded"]>>
+> &
   WorkflowMetadataCarrier<Args, Returns>;

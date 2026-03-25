@@ -5,6 +5,7 @@ import {
 import { Effect, Schema } from "effect";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { defineWorkflow } from "../src/server.js";
+import { workflowSpec } from "../src/spec.js";
 
 describe("Workflow runtime boundary", () => {
   afterEach(() => {
@@ -37,10 +38,13 @@ describe("Workflow runtime boundary", () => {
   it("Workflow.define decodes args before the handler runs", async () => {
     const capture = captureDefinition();
     const handler = vi.fn(({ count }: { count: number }) => Effect.succeed(count + 1));
-
-    defineWorkflow({} as any, {
+    const countWorkflow = workflowSpec({
+      name: "countWorkflow",
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
+    });
+
+    defineWorkflow({} as any, countWorkflow, {
       handler,
     });
 
@@ -53,10 +57,13 @@ describe("Workflow runtime boundary", () => {
 
   it("Workflow.define encodes returns before returning upstream", async () => {
     const capture = captureDefinition();
-
-    defineWorkflow({} as any, {
+    const countWorkflow = workflowSpec({
+      name: "countWorkflow",
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
+    });
+
+    defineWorkflow({} as any, countWorkflow, {
       handler: ({ count }) => Effect.succeed(count + 1),
     });
 
@@ -68,10 +75,13 @@ describe("Workflow runtime boundary", () => {
   it("Workflow.define fails invalid encoded args before the handler runs", async () => {
     const capture = captureDefinition();
     const handler = vi.fn(() => Effect.succeed(42));
-
-    defineWorkflow({} as any, {
+    const countWorkflow = workflowSpec({
+      name: "countWorkflow",
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
+    });
+
+    defineWorkflow({} as any, countWorkflow, {
       handler,
     });
 
@@ -86,10 +96,13 @@ describe("Workflow runtime boundary", () => {
 
   it("Workflow.define fails invalid handler returns at the wrapper boundary", async () => {
     const capture = captureDefinition();
-
-    defineWorkflow({} as any, {
+    const countWorkflow = workflowSpec({
+      name: "countWorkflow",
       args: Schema.Struct({ count: Schema.NumberFromString }),
       returns: Schema.NumberFromString,
+    });
+
+    defineWorkflow({} as any, countWorkflow, {
       handler: () => Effect.succeed("wrong-shape" as any),
     });
 
@@ -106,10 +119,13 @@ describe("Workflow runtime boundary", () => {
       maxParallelism: 3,
       retryActionsByDefault: true,
     };
-
-    defineWorkflow({} as any, {
+    const emptyWorkflow = workflowSpec({
+      name: "emptyWorkflow",
       args: Schema.Struct({}),
       returns: Schema.Null,
+    });
+
+    defineWorkflow({} as any, emptyWorkflow, {
       handler: () => Effect.succeed(null),
       workpoolOptions,
     });
